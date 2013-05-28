@@ -28,48 +28,15 @@
         android:text="@string/returnmain"
         android:textColor="@color/Black" />
 
-    <Button
-        android:id="@+id/btnPowerDown"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_x="215dp"
-        android:layout_y="90dp"
-        android:background="@drawable/btnpublic"
-        android:text="@string/Powerdown"
-        android:textColor="@color/Black"
-        android:textSize="12dp" />
-
-    <Button
-        android:id="@+id/btnResetCard"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_x="130dp"
-        android:layout_y="90dp"
-        android:background="@drawable/btnpublic"
-        android:text="@string/ResetCard"
-        android:textColor="@color/Black"
-        android:textSize="10dp" />
-
     <TextView
         android:id="@+id/apdutestViewStep1"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="30dp"
         android:layout_x="0dp"
         android:layout_y="57dp"
         android:text="@string/APDUStep1"
         android:textColor="@color/Black"
-        android:textSize="18dp" />
-
-    <Button
-        android:id="@+id/btnProbeCard"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
-        android:layout_x="45dp"
-        android:layout_y="90dp"
-        android:background="@drawable/btnpublic"
-        android:text="@string/ProbeCard"
-        android:textColor="@color/Black"
-        android:textSize="12dp" />
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/apdutestViewStep2"
@@ -79,7 +46,7 @@
         android:layout_y="157dp"
         android:text="@string/APDUStep2"
         android:textColor="@color/Black"
-        android:textSize="18dp" />
+        android:textSize="18sp" />
 
     <Button
         android:id="@+id/btnRead8ByteRandomData"
@@ -110,7 +77,7 @@
         android:ems="10"
         android:gravity="center"
         android:hint="@string/ProcessStatus"
-        android:textSize="18dp" />
+        android:textSize="18sp" />
 
     <EditText
         android:id="@+id/etReturnData"
@@ -121,7 +88,7 @@
         android:ems="10"
         android:gravity="center"
         android:hint="返回数据"
-        android:textSize="18dp" />
+        android:textSize="18sp" />
 
     <EditText
         android:id="@+id/etReturnSW"
@@ -132,6 +99,16 @@
         android:ems="10"
         android:gravity="center"
         android:hint="返回SW/ATR"
-        android:textSize="18dp" />
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvTagInfo"
+        android:layout_width="290dp"
+        android:layout_height="70dp"
+        android:layout_x="10dp"
+        android:layout_y="82dp"
+        android:gravity="center"
+        android:text="@string/tagInfo"
+        android:textSize="10sp" />
 
 </AbsoluteLayout>

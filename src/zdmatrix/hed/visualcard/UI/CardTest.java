@@ -2,38 +2,45 @@ package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.IntentFilter;
 
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
+import android.nfc.tech.NfcA;
+import android.nfc.tech.NfcB;
 import android.os.Bundle;
 import android.os.Handler;
 
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 
 public class CardTest extends Activity{
 	
-	boolean 			bIsRecording = false;//是否录放的标记
+	
 	boolean 			bExit = false;
-//	boolean				bReturnMain = false;
 	boolean				bRead8ByteRandomData = false;
 	boolean				bWriteData = false;
 	boolean				bSend = false;
 	
 	boolean				bProbeCard = false;
-	boolean				bResetCard = false;
-	boolean				bPowerDown = false;
+	boolean				bNFCConnected = false;
 	
 	int					nNum = 0;
 	
-	String 				strApduCmdBody;
-	String				strApduData;
+	String 				strSW;
+	String				strData;
+	String				strTagInfo = "";
+	String[][]			strTechLists;
+	String				strOPStatus = "";
 	
-//	TextView			tvOpStatus;
-//	TextView			tvReturnData1;
-//	TextView			tvReturnData2;
-//	TextView			tvReturnSW;
+	TextView			tvTagInfo;
 	
 	EditText			etOPStatus;
 	EditText    		etReturnData;
@@ -46,6 +53,14 @@ public class CardTest extends Activity{
 	Button 				btnResetCard;
 	Button 				btnPowerDown;
 	Button 				btnWriteData;
+	
+	NfcAdapter			nfcAdapter;
+	PendingIntent		pendingIntent;
+	Tag					tagFromIntent;
+	IntentFilter		ndef;
+	IntentFilter		tech;
+	IntentFilter		tag;
+	IntentFilter[]		intentFilter;
 	
 	Handler				handler = null;
 	
@@ -60,36 +75,6 @@ public class CardTest extends Activity{
         setContentView(R.layout.maincardtest);
         
         handler = new Handler();
-        
-//        etAPDUCmd = (EditText) findViewById(R.id.etAPDUCmd);
-//        etAPDUData = (EditText)findViewById(R.id.etAPDUData);
-        
-//        etAPDUCmd.setHint("请输入APDU指令");
-//        etAPDUData.setHint("请输入APDU数据");
-        
-        
-        
-        
-/*        
-		etAPDUCmd.setOnKeyListener(new EditText.OnKeyListener() {
-			public boolean onKey(View arg0, int arg1, KeyEvent arg2)
-			{
-				strApduCmdBody = etAPDUCmd.getText().toString();
-				return false;
-			}
-		});
-		
-        etAPDUData.setOnKeyListener(new EditText.OnKeyListener() {
-			public boolean onKey(View arg0, int arg1, KeyEvent arg2)
-			{
-				strApduData = etAPDUData.getText().toString();
-				return false;
-			}
-		});
-
-*/
-//        btnSend = (Button) findViewById(R.id.btnSend);
-//        btnSend.setOnClickListener(new ClickEvent());
                 
         btnReturnMain = (Button) findViewById(R.id.btnReturnMain);
         btnReturnMain.setOnClickListener(new ClickEvent());
@@ -100,43 +85,76 @@ public class CardTest extends Activity{
         btnWriteData = (Button) findViewById(R.id.btnWriteData);
         btnWriteData.setOnClickListener(new ClickEvent());
         
-        btnProbeCard = (Button) findViewById(R.id.btnProbeCard);
-        btnProbeCard.setOnClickListener(new ClickEvent());
-        
-        btnResetCard = (Button) findViewById(R.id.btnResetCard);
-        btnResetCard.setOnClickListener(new ClickEvent());
-        
-        btnPowerDown = (Button) findViewById(R.id.btnPowerDown);
-        btnPowerDown.setOnClickListener(new ClickEvent());
-        
         etOPStatus = (EditText)findViewById(R.id.etOPStatus);
-//        tvReturnData1 = (TextView)findViewById(R.id.tvReturnData1);
-//        tvReturnData2 = (TextView)findViewById(R.id.tvReturnData2);
+
         etReturnSW = (EditText)findViewById(R.id.etReturnSW);
         etReturnData = (EditText)findViewById(R.id.etReturnData);
-       
+        
+        tvTagInfo = (TextView)findViewById(R.id.tvTagInfo);
+        
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if(nfcAdapter == null){
+        	etOPStatus.setText("该设备不支持NFC");
+        }
+        if(!nfcAdapter.isEnabled()){
+        	etOPStatus.setText("请在系统设置中启用NFC功能");
+        }
+        
+        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        tech = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
+        tag = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        
+        intentFilter = new IntentFilter[]{ndef, tech, tag};
+        
+        strTechLists = new String[][]{new String[]{MifareClassic.class.getName(),
+        		NfcA.class.getName(), NfcB.class.getName(), IsoDep.class.getName()}};
     }
+	
+	@Override
+	public void onResume(){
+		super.onResume();
+		nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentFilter, strTechLists);
+	}
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		nfcAdapter.disableForegroundDispatch(this);
+	}
+	
+	@Override
+	public void onNewIntent(Intent intent){
+		String intenttype = intent.getAction();
+		strTagInfo += "Android NFC Dispatch System dispatch intent: \n" + intenttype + "\n"; 
+		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
+			bNFCConnected = true;
+		}
+		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		strTagInfo += "This Tag Supports as follows: \n";
+		for(String techlist : tagFromIntent.getTechList()){
+			strTagInfo +=  techlist + "\n";
+		}
+		tvTagInfo.setText(strTagInfo);
+		strTagInfo = "";
+		strOPStatus = "检测到NFC Tag";
+		etOPStatus.setText(strOPStatus);
+		strOPStatus = "";
+	}
 	
 	class ClickEvent implements View.OnClickListener {
 
 		public void onClick(View v) {
-			if (v == btnRead8ByteRandomData || v == btnWriteData || v == btnProbeCard 
-					|| v == btnResetCard || v == btnPowerDown){
-				bIsRecording = true;
+			if (v == btnRead8ByteRandomData || v == btnWriteData){
+				
 				if(v == btnRead8ByteRandomData)
 					bRead8ByteRandomData = true;
 				else if(v == btnWriteData)
 					bWriteData = true;
-				else if(v == btnProbeCard)
-					bProbeCard = true;
-				else if(v == btnResetCard)
-					bResetCard = true;
-				else if(v == btnPowerDown)
-					bPowerDown = true;
 				
-				new CardTestThread().start();// 开一条线程执行APDU测试
 			} 
-			else if (v == btnReturnMain) {
+			
+			if (v == btnReturnMain) {
 				/* 新建一个Intent对象 */
 				Intent intent = new Intent();
 				/* 指定intent要启动的类 */
@@ -146,6 +164,8 @@ public class CardTest extends Activity{
 				/* 关闭当前的Activity */
 				CardTest.this.finish();
 			}
+			
+			new CardTestThread().start();// 开一条线程执行APDU测试
 		}
 	}
 	
@@ -153,49 +173,53 @@ public class CardTest extends Activity{
 		@Override
 		public void run() {
 			
-			while(bIsRecording) {
-				
-//				while(0 != times --){
+			
 				if(bRead8ByteRandomData){
-					strApduCmdBody = "48050084000008";
-					strApduData = null;
+					byte[] apdu = new byte[5];
+					apdu[0] = 0x00;
+					apdu[1] = (byte)0x84;
+					apdu[2] = 0x00;
+					apdu[3] = 0x00;
+					apdu[4] = 0x08;
+					while(!bNFCConnected){
+						strOPStatus = "请将卡靠近手机...";
+						etOPStatus.setText(strOPStatus);
+					}
+					IsoDep isodep = IsoDep.get(tagFromIntent);
+					try{
+						isodep.connect();
+						byte[] sw = isodep.transceive(apdu);
+						strSW = bytesToHexString(sw, (sw.length - 2), 2);
+						strData = bytesToHexString(sw, 0, 8);
+						
+						if(strSW.equals("0x9000")){
+							strOPStatus = "读8字节随机数成功";
+						}
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+					
 					
 				}
 				else if(bWriteData){
-					strApduCmdBody = "080880bf010003";
-					strApduData = "31363" + Integer.toString(nNum % 10);
+//					strApduCmdBody = "080880bf010003";
+//					strApduData = "31363" + Integer.toString(nNum % 10);
 					nNum ++;
 					
 				}
-				else if(bProbeCard){
-					strApduCmdBody = "01";
-					strApduData = null;
-					
-				}
-				else if(bResetCard){
-					strApduCmdBody = "02";
-					strApduData = null;
-					
-				}
-				else if(bPowerDown){
-					strApduCmdBody = "03";
-					strApduData = null;
-					
-				}
-				
-				globalval.txDataToMCU(strApduCmdBody, strApduData, true);
 				
 				
-				retcode = globalval.rxDataFromMCU();
-//				globalval.resetCard();
-//				handler.post(runnableUi);
 				
-//				globalval.echoTest(strApduCmdBody, strApduData, true);
+//				globalval.txDataToMCU(strApduCmdBody, strApduData, true);
 				
-				bIsRecording = false;
+				
+//				retcode = globalval.rxDataFromMCU();
+
+				
+				
 				
 
-			}
+			
 			
 			handler.post(runnableUi);   
 
@@ -205,86 +229,36 @@ public class CardTest extends Activity{
 		Runnable runnableUi = new Runnable(){
 			@Override
 			public void run(){
-				
-				Global.ReturnDataInString ret = globalval.getRetDataInStr(retcode);
-				
-				
-				switch(retcode.nPcbCharacter){
-				case 0x80:
-					if(bProbeCard){
-						etOPStatus.setText("探卡成功，卡已插入");
-						
-					}
-					else{ 
-						if(bResetCard){
-							ret.strData = globalval.intToString(retcode.nData, 0, retcode.nLength);
-							etOPStatus.setText("卡上电复位成功");
-						}
-						else
-							etOPStatus.setText("卡掉电成功");
-					}
-					break;
-				case 0x81:
-					if(bProbeCard){
-						etOPStatus.setText("探卡失败，卡未插入");
-						
-					}
-					else{ 
-						if(bResetCard){
-							etOPStatus.setText("卡上电复位失败，卡未插入");
-						}
-						else
-							etOPStatus.setText("卡掉电失败，卡未插入");
-					}
-					
-					break;
-				case 0x82:
-					etOPStatus.setText("卡上电复位失败");
-					break;
-				case 0x83:
-					etOPStatus.setText("不支持的卡操作");
-					break;	
-				case 0x88:
-					if(bRead8ByteRandomData){
-						etOPStatus.setText("读随机数APDU指令操作成功");
-						ret.strData = globalval.intToString(retcode.nData, 0, retcode.nLength - 2);
-					}
-					if(bWriteData)
-						etOPStatus.setText("写卡数据APDU指令操作成功");
-					break;
-				case 0x89:
-					etOPStatus.setText("卡无响应");
-					break;
-				case 0x8a:
-					etOPStatus.setText("不支持的APDU指令");
-					break;
-				case 0x8b:
-					etOPStatus.setText("APDU操作超时");
-					break;
-				default:
-					etOPStatus.setText("无法识别");
-					break;
-				}
-				
-				
+
 				bRead8ByteRandomData = false;
 				bWriteData = false;
-				bSend = false;
-				bProbeCard = false;
-				bResetCard = false;
-				bPowerDown = false;
 				
 				
 				
-				
-				
-				etReturnData.setText(ret.strData);	
-				etReturnSW.setText(ret.strSW);	
+				etOPStatus.setText(strOPStatus);
+				etReturnSW.setText(strSW);
+				etReturnData.setText(strData);
 			
 				
 			}
 		};
 		
-
+		//字符序列转换为16进制字符串
+		private String bytesToHexString(byte[] src, int startindex, int length) {
+			StringBuilder stringBuilder = new StringBuilder("0x");
+			if (src == null || src.length <= 0) {
+				return null;
+			}
+			char[] buffer = new char[2];
+			for (int i = startindex; i < startindex + length; i++) {
+				buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
+				buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
+				System.out.println(buffer);
+				stringBuilder.append(buffer);
+			}
+			return stringBuilder.toString();
+		}
+		
+		
 		
 }

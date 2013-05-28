@@ -17,17 +17,12 @@ import android.os.Environment;
 import android.util.Log;
 
 public class Global {
+	
 	public static final int LOGIC0FRENQUENCE = 1250;
 	public static final int LOGIC1FRENQUENCE = 2500;
 	public static final short AMPLITUDEMAX = 32767;
 	public static final short AMPLITUDEMIN = -3;
 	public static final short DECODETHRESHOLDVAL = 10000;
-/*
-	public static final int HALFLOGIC1NUMMAX = 12;
-	public static final int HALFLOGIC1NUMMIN = 6;
-	public static final int HALFLOGIC0NUMMAX = 22;
-	public static final int HALFLOGIC0NUMMIN = 14;
-*/
 
 	public static final int HALFLOGIC1NUMMAX = 14;
 	public static final int HALFLOGIC1NUMMIN = 6;
@@ -52,19 +47,11 @@ public class Global {
 	public static final String CMDSELECTFILE = "080700A4000002";
 	public static final String CMDCARDBUTTON = "080580BF060000";
 	public static final String CMDGETREADYAUTHCODE = "080580BF080000";
-/*
-	public static final String FILEADDR = "00BF";
-	public static final String CMDRSAPUBKEY = "081480E000100E";
-	public static final String DATARSAPUBKEY = "0011000001010000000000000000";
-	public static final String CMDRSAPRIKEY = "080F80E000110A";
-	public static final String DATARSAPRIKEY = "00120000010100000001";
-*/
 	public static final String CMDRSAKEYPAIR = "08058046111200";
 	
 	
 	
 	static final int 	frequency = 44100;
-//	static final int 	channelInConfiguration = AudioFormat.CHANNEL_IN_STEREO;
 	static final int 	channelInConfiguration = AudioFormat.CHANNEL_IN_MONO;
 	static final int 	audioInEncoding = AudioFormat.ENCODING_PCM_16BIT;
 	static final int 	channelOutConfiguration = AudioFormat.CHANNEL_OUT_STEREO;

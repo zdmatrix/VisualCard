@@ -16,18 +16,18 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="zdmatrix.hed.visualcard.UI.MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="zdmatrix.hed.visualcard.UI.CardTest"></activity>
-        <activity android:name="zdmatrix.hed.visualcard.UI.DynamicOrder"></activity>
-        <activity android:name="zdmatrix.hed.visualcard.UI.ElectricMoney"></activity>
-        <activity android:name="zdmatrix.hed.visualcard.UI.NewUKey"></activity>
-        <activity android:name="zdmatrix.hed.visualcard.UI.OTP">
+        <activity android:name=".UI.OTP" android:screenOrientation="portrait"></activity>
+        <activity android:name="zdmatrix.hed.visualcard.UI.DynamicOrder" android:screenOrientation="portrait"></activity>
+        <activity android:name="zdmatrix.hed.visualcard.UI.ElectricMoney" android:screenOrientation="portrait"></activity>
+        <activity android:name="zdmatrix.hed.visualcard.UI.NewUKey" android:screenOrientation="portrait"></activity>
+        <activity android:name=".UI.CardTest" android:screenOrientation="portrait">
             <intent-filter android:label="NFC NDEF">
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
                 <data android:mimeType='text/plain'/>

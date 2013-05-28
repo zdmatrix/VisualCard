@@ -62,5 +62,6 @@
     <string name="cardtest">卡测试</string>
     <string name="test">名字起长点就是为了测试</string>
     <string name="action_settings">VisualCard</string>
+    <string name="tagInfo">标签信息</string>
 
 </resources>
