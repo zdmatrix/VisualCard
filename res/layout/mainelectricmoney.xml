@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/Lavender"
+    android:orientation="vertical"
+    tools:context=".ElectricMoney" >
+
+    <TextView
+        android:id="@+id/electricmoneystep1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="2dp"
+        android:layout_y="132dp"
+        android:text="@string/ElectricMoneyStep1"
+        android:textColor="@color/Black"
+        android:color="@color/Black" />
+
+    <EditText
+        android:id="@+id/etRecharge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="10dp"
+        android:layout_y="177dp"
+        android:ems="10"
+        android:gravity="center"
+        android:textColor="@color/Green"
+        android:color="@color/Black" />
+
+    <TextView
+        android:id="@+id/electricmoneystep2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="2dp"
+        android:layout_y="235dp"
+        android:text="@string/ElectricMoneyStep2"
+        android:textColor="@color/Black"
+        android:color="@color/Black" />
+
+    <TextView
+        android:id="@+id/electricmoneystep3"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="4dp"
+        android:layout_y="266dp"
+        android:text="@string/ElectricMoneyStep3"
+        android:textColor="@color/Black"
+        android:color="@color/Black" />
+
+    <EditText
+        android:id="@+id/etConsume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="12dp"
+        android:layout_y="310dp"
+        android:ems="10"
+        android:gravity="center"
+        android:textColor="@color/Red"
+        android:color="@color/Black" />
+
+    <TextView
+        android:id="@+id/electricmoneystep4"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="3dp"
+        android:layout_y="370dp"
+        android:text="@string/ElectricMoneyStep4"
+        android:textColor="@color/Black"
+        android:color="@color/Black" />
+
+    <TextView
+        android:id="@+id/cardbanlance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="4dp"
+        android:layout_y="84dp"
+        android:text="@string/CardBanlance"
+        android:textColor="@color/Black"
+        android:textSize="22dp"
+        android:color="@color/Black" />
+
+    <EditText
+        android:id="@+id/etBanlance"
+        android:layout_width="103dp"
+        android:layout_height="wrap_content"
+        android:layout_x="136dp"
+        android:layout_y="75dp"
+        android:ems="10"
+        android:gravity="center"
+        android:textColor="@color/Green"
+        android:color="@color/Black" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/btnReturnMain"
+        android:layout_width="213dp"
+        android:layout_height="42dp"
+        android:layout_x="46dp"
+        android:layout_y="423dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/returnmain"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/electricmoneyViewLabal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp"
+        android:layout_x="1dp"
+        android:layout_y="9dp"
+        android:gravity="center"
+        android:text="@string/ElectricMoney"
+        android:textColor="@color/Black"
+        android:textSize="30dp"
+        android:color="@color/Black" />
+
+    <Button
+        android:id="@+id/btnRecharge"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_x="235dp"
+        android:layout_y="178dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/Recharge"
+        android:textColor="@color/Black" />
+
+    <Button
+        android:id="@+id/btnConsume"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_x="240dp"
+        android:layout_y="313dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/Consume"
+        android:textColor="@color/Black" />
+
+    <Button
+        android:id="@+id/btnReadBanlance"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_x="240dp"
+        android:layout_y="77dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/readBanlance"
+        android:textColor="@color/Black" />
+
+</AbsoluteLayout>

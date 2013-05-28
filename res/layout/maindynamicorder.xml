@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/Lavender"
+    android:orientation="vertical"
+    tools:context=".OTP" >
+
+    <TextView
+        android:id="@+id/dynamicorderViewLabal"
+        android:layout_width="fill_parent"
+        android:layout_height="48dp"
+        android:layout_x="0dp"
+        android:layout_y="25dp"
+        android:gravity="center"
+        android:text="@string/DynamicOrder"
+        android:textColor="@color/Black"
+        android:textSize="25dp" />
+
+    <Button
+        android:id="@+id/btnReturnMain"
+        android:layout_width="182dp"
+        android:layout_height="51dp"
+        android:layout_x="68dp"
+        android:layout_y="350dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/returnmain"
+        android:textColor="@color/Black" />
+
+    <ImageView
+        android:id="@+id/imgLoadedImage"
+        android:layout_width="fill_parent"
+        android:layout_height="142dp"
+        android:layout_x="0dp"
+        android:layout_y="117dp" />
+
+</AbsoluteLayout>

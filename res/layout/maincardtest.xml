@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/Lavender"
+    android:orientation="vertical"
+    tools:context=".CardTest" >
+
+    <TextView
+        android:id="@+id/apdutestViewLabal"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:layout_x="0dp"
+        android:layout_y="1dp"
+        android:gravity="center"
+        android:text="@string/cardtest"
+        android:textColor="@color/Black"
+        android:textSize="25sp" />
+
+    <Button
+        android:id="@+id/btnReturnMain"
+        android:layout_width="156dp"
+        android:layout_height="36dp"
+        android:layout_x="79dp"
+        android:layout_y="436dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/returnmain"
+        android:textColor="@color/Black" />
+
+    <Button
+        android:id="@+id/btnPowerDown"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_x="215dp"
+        android:layout_y="90dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/Powerdown"
+        android:textColor="@color/Black"
+        android:textSize="12dp" />
+
+    <Button
+        android:id="@+id/btnResetCard"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_x="130dp"
+        android:layout_y="90dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/ResetCard"
+        android:textColor="@color/Black"
+        android:textSize="10dp" />
+
+    <TextView
+        android:id="@+id/apdutestViewStep1"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:layout_x="0dp"
+        android:layout_y="57dp"
+        android:text="@string/APDUStep1"
+        android:textColor="@color/Black"
+        android:textSize="18dp" />
+
+    <Button
+        android:id="@+id/btnProbeCard"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_x="45dp"
+        android:layout_y="90dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/ProbeCard"
+        android:textColor="@color/Black"
+        android:textSize="12dp" />
+
+    <TextView
+        android:id="@+id/apdutestViewStep2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="1dp"
+        android:layout_y="157dp"
+        android:text="@string/APDUStep2"
+        android:textColor="@color/Black"
+        android:textSize="18dp" />
+
+    <Button
+        android:id="@+id/btnRead8ByteRandomData"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_x="11dp"
+        android:layout_y="192dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/Read"
+        android:textColor="@color/Black" />
+
+    <Button
+        android:id="@+id/btnWriteData"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_x="168dp"
+        android:layout_y="194dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/Write"
+        android:textColor="@color/Black" />
+
+    <EditText
+        android:id="@+id/etOPStatus"
+        android:layout_width="203dp"
+        android:layout_height="wrap_content"
+        android:layout_x="68dp"
+        android:layout_y="255dp"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="@string/ProcessStatus"
+        android:textSize="18dp" />
+
+    <EditText
+        android:id="@+id/etReturnData"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="0dp"
+        android:layout_y="319dp"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="返回数据"
+        android:textSize="18dp" />
+
+    <EditText
+        android:id="@+id/etReturnSW"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="0dp"
+        android:layout_y="368dp"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="返回SW/ATR"
+        android:textSize="18dp" />
+
+</AbsoluteLayout>

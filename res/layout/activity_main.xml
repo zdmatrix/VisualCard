@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/LightYellow"
+    android:orientation="vertical" >
+
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="fill_parent"
+        android:layout_height="75dp"
+        android:layout_x="0dp"
+        android:layout_y="0dp"
+        android:background="@color/AliceBlue"
+        android:src="@drawable/head" />
+
+
+
+
+
+
+
+
+
+
+    <Button
+        android:id="@+id/btnCardTest"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="36dp"
+        android:layout_x="170dp"
+        android:layout_y="170dp"
+        android:background="@drawable/menupublic"
+        android:drawableTop="@drawable/cardtest"
+        android:paddingTop="10dp"
+        android:text="@string/cardtest"
+        android:textColor="@color/Black" />
+
+
+
+
+
+
+
+
+
+    <Button
+        android:id="@+id/btnOTP"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_x="170dp"
+        android:layout_y="290dp"
+        android:background="@drawable/menupublic"
+        android:drawableTop="@drawable/otp"
+        android:paddingTop="10dp"
+        android:text="@string/otp"
+        android:textColor="@color/Black" />
+
+
+
+
+
+    <Button
+        android:id="@+id/btnNewUKey"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_x="60dp"
+        android:layout_y="170dp"
+        android:background="@drawable/menupublic"
+        android:drawableTop="@drawable/newukey"
+        android:paddingTop="10dp"
+        android:text="@string/NewUKey"
+        android:textColor="@color/Black"
+        android:typeface="monospace" />
+
+
+
+
+
+
+
+    <Button
+        android:id="@+id/btnElectricMoney"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginRight="16dp"
+        android:layout_x="60dp"
+        android:layout_y="290dp"
+        android:background="@drawable/menupublic"
+        android:drawableTop="@drawable/elecmoney"
+        android:paddingTop="10dp"
+        android:text="@string/ElectricMoney"
+        android:textColor="@color/Black" />
+
+
+    <Button
+        android:id="@+id/btnExit"
+        android:layout_width="121dp"
+        android:layout_height="wrap_content"
+        android:layout_x="95dp"
+        android:layout_y="421dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/exit"
+        android:textColor="@color/Black"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/mainViewLabal"
+        android:layout_width="fill_parent"
+        android:layout_height="66dp"
+        android:layout_marginTop="36dp"
+        android:layout_x="2dp"
+        android:layout_y="85dp"
+        android:gravity="center"
+        android:text="@string/hello"
+        android:textColor="@color/Black"
+        android:textSize="28dp"
+        android:typeface="monospace" />
+
+</AbsoluteLayout>

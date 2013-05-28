@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/Lavender"
+    android:orientation="vertical"
+    tools:context=".NewUKey" >
+
+    <ProgressBar
+        android:id="@+id/ProgressBar01"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/etRechargeData"
+        android:layout_width="136dp"
+        android:layout_height="40dp"
+        android:layout_x="100dp"
+        android:layout_y="234dp"
+        android:ems="10"
+        android:singleLine="true"
+        android:textColor="@color/Red"
+        android:textSize="20dp" />
+
+    <ImageView
+        android:id="@+id/imgvRechargeData"
+        android:layout_width="192dp"
+        android:layout_height="27dp"
+        android:layout_x="100dp"
+        android:layout_y="348dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/lucency" />
+
+    <ImageView
+        android:id="@+id/imgvDstAccount"
+        android:layout_width="192dp"
+        android:layout_height="27dp"
+        android:layout_x="100dp"
+        android:layout_y="321dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/lucency" />
+
+    <TextView
+        android:id="@+id/TextView01"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="4dp"
+        android:layout_y="70dp"
+        android:text="@string/newukeyRSAkeypair"
+        android:textColor="@color/Black" />
+
+    <EditText
+        android:id="@+id/etRSAKey"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_x="12dp"
+        android:layout_y="90dp"
+        android:ems="10"
+        android:hint="@string/disRSA"
+        android:singleLine="true"
+        android:text="@string/Null"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/NewUkeyStep1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="4dp"
+        android:layout_y="133dp"
+        android:text="@string/newukeyenter"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="8dp"
+        android:layout_y="160dp"
+        android:text="10位用户帐号"
+        android:textColor="@color/Black" />
+
+    <EditText
+        android:id="@+id/etSrcAccount"
+        android:layout_width="136dp"
+        android:layout_height="40dp"
+        android:layout_x="100dp"
+        android:layout_y="152dp"
+        android:ems="10"
+        android:singleLine="true"
+        android:textColor="@color/Green"
+        android:textColorHint="#106000"
+        android:textSize="20dp" />
+
+    <EditText
+        android:id="@+id/etDstAccount"
+        android:layout_width="135dp"
+        android:layout_height="40dp"
+        android:layout_x="100dp"
+        android:layout_y="193dp"
+        android:ems="10"
+        android:singleLine="true"
+        android:textColor="@color/Green"
+        android:textSize="20dp" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="10dp"
+        android:layout_y="205dp"
+        android:text="10位目的帐号"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="20dp"
+        android:layout_y="246dp"
+        android:text="转账金额"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/NewUkeyStep2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="4dp"
+        android:layout_y="275dp"
+        android:text="@string/newukeyconfirm"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="20dp"
+        android:layout_y="300dp"
+        android:text="原始账户"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/TextView02"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="20dp"
+        android:layout_y="328dp"
+        android:text="目的账户"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/TextView03"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="20dp"
+        android:layout_y="357dp"
+        android:text="转账金额"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/TextView04"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="20dp"
+        android:layout_y="382dp"
+        android:text="认证码"
+        android:textColor="@color/Black" />
+
+    <ImageView
+        android:id="@+id/imgvSrcAccount"
+        android:layout_width="192dp"
+        android:layout_height="27dp"
+        android:layout_x="100dp"
+        android:layout_y="294dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/lucency" />
+
+    <ImageView
+        android:id="@+id/imgvAuthCode"
+        android:layout_width="192dp"
+        android:layout_height="27dp"
+        android:layout_x="100dp"
+        android:layout_y="375dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/lucency" />
+
+    <Button
+        android:id="@+id/btnGenerateRSAKey"
+        android:layout_width="81dp"
+        android:layout_height="40dp"
+        android:layout_x="236dp"
+        android:layout_y="89dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/GeneratePublicKey"
+        android:textColor="@color/Black" />
+
+    <Button
+        android:id="@+id/btnTxDataToCard"
+        android:layout_width="74dp"
+        android:layout_height="84dp"
+        android:layout_x="242dp"
+        android:layout_y="168dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/SendDataToCard"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="96dp"
+        android:layout_height="33dp"
+        android:layout_x="0dp"
+        android:layout_y="405dp"
+        android:gravity="center"
+        android:text="帐户余额"
+        android:textColor="@color/Black"
+        android:textSize="20dp" />
+
+    <EditText
+        android:id="@+id/etBanlanceCash"
+        android:layout_width="132dp"
+        android:layout_height="40dp"
+        android:layout_x="96dp"
+        android:layout_y="405dp"
+        android:ems="10"
+        android:gravity="center"
+        android:text="@string/banlance"
+        android:textColor="@color/Green" />
+
+    <Button
+        android:id="@+id/btnReadBanlance"
+        android:layout_width="70dp"
+        android:layout_height="40dp"
+        android:layout_x="243dp"
+        android:layout_y="403dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/readBanlance"
+        android:textColor="@color/Black" />
+
+    <TextView
+        android:id="@+id/newukeyViewLabal"
+        android:layout_width="fill_parent"
+        android:layout_height="58dp"
+        android:layout_x="-2dp"
+        android:layout_y="-1dp"
+        android:background="@color/Lavender"
+        android:gravity="center"
+        android:text="@string/NewUKey"
+        android:textColor="@color/Black"
+        android:textSize="28dp" />
+
+    <Button
+        android:id="@+id/btnReturnMain"
+        android:layout_width="156dp"
+        android:layout_height="40dp"
+        android:layout_x="82dp"
+        android:layout_y="444dp"
+        android:background="@drawable/btnpublic"
+        android:text="@string/returnmain"
+        android:textColor="@color/Black" />
+
+</AbsoluteLayout>
