@@ -33,6 +33,7 @@ public class CardTest extends Activity{
 	boolean				bNFCConnected = false;
 	
 	int					nNum = 0;
+	int					nRandomTimes = 0;
 	
 	String 				strSW;
 	String				strData;
@@ -54,6 +55,7 @@ public class CardTest extends Activity{
 	Button 				btnPowerDown;
 	Button 				btnWriteData;
 	
+//	IsoDep				isodep;
 	NfcAdapter			nfcAdapter;
 	PendingIntent		pendingIntent;
 	Tag					tagFromIntent;
@@ -128,9 +130,11 @@ public class CardTest extends Activity{
 		String intenttype = intent.getAction();
 		strTagInfo += "Android NFC Dispatch System dispatch intent: \n" + intenttype + "\n"; 
 		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
+			
 			bNFCConnected = true;
 		}
 		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		
 		strTagInfo += "This Tag Supports as follows: \n";
 		for(String techlist : tagFromIntent.getTechList()){
 			strTagInfo +=  techlist + "\n";
@@ -146,12 +150,15 @@ public class CardTest extends Activity{
 
 		public void onClick(View v) {
 			if (v == btnRead8ByteRandomData || v == btnWriteData){
-				
-				if(v == btnRead8ByteRandomData)
-					bRead8ByteRandomData = true;
-				else if(v == btnWriteData)
-					bWriteData = true;
-				
+				if(!bNFCConnected){
+					new NFCDisconnectedThread().start();
+				}else{
+					if(v == btnRead8ByteRandomData){
+						new GetRandomDataThread().start();
+					}
+					if(v == btnWriteData)
+						new WriteDataThread().start();
+				}
 			} 
 			
 			if (v == btnReturnMain) {
@@ -165,66 +172,81 @@ public class CardTest extends Activity{
 				CardTest.this.finish();
 			}
 			
-			new CardTestThread().start();// 开一条线程执行APDU测试
+			
 		}
 	}
 	
-	class CardTestThread extends Thread {
+	class NFCDisconnectedThread extends Thread{
 		@Override
-		public void run() {
-			
-			
-				if(bRead8ByteRandomData){
-					byte[] apdu = new byte[5];
-					apdu[0] = 0x00;
-					apdu[1] = (byte)0x84;
-					apdu[2] = 0x00;
-					apdu[3] = 0x00;
-					apdu[4] = 0x08;
-					while(!bNFCConnected){
-						strOPStatus = "请将卡靠近手机...";
-						etOPStatus.setText(strOPStatus);
+		public void run(){
+			strSW = "";
+			strData = "";
+			strOPStatus = "请将卡靠近手机...";
+			handler.post(runnableUi);
+		}
+	}
+	
+	class GetRandomDataThread extends Thread{
+		@Override
+		public void run(){
+			byte[] apdu = new byte[5];
+			apdu[0] = 0x00;
+			apdu[1] = (byte)0x84;
+			apdu[2] = 0x00;
+			apdu[3] = 0x00;
+			apdu[4] = 0x08;
+
+			IsoDep isodep = IsoDep.get(tagFromIntent);
+				try{
+					isodep.connect();
+					byte[] sw = isodep.transceive(apdu);
+					strSW = bytesToHexString(sw, (sw.length - 2), 2);
+					strData = bytesToHexString(sw, 0, 8);
+					nRandomTimes ++;
+					if(strSW.equals("0x9000")){
+						strOPStatus = "第" + nRandomTimes + "次读随机数成功";
 					}
-					IsoDep isodep = IsoDep.get(tagFromIntent);
-					try{
-						isodep.connect();
-						byte[] sw = isodep.transceive(apdu);
-						strSW = bytesToHexString(sw, (sw.length - 2), 2);
-						strData = bytesToHexString(sw, 0, 8);
-						
-						if(strSW.equals("0x9000")){
-							strOPStatus = "读8字节随机数成功";
-						}
-					}catch(Exception e){
-						e.printStackTrace();
+					isodep.close();
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			handler.post(runnableUi);
+		}
+	}
+	
+	class WriteDataThread extends Thread{
+		@Override
+		public void run(){
+			byte[] apdu = new byte[8];
+			apdu[0] = (byte)0x80;
+			apdu[1] = (byte)0xbf;
+			apdu[2] = 0x01;
+			apdu[3] = 0x00;
+			apdu[4] = 0x03;
+			apdu[5] = 0x31;
+			apdu[6] = 0x36;
+			apdu[7] = (byte) (0x30 + (nNum % 10));
+			nNum ++;
+			
+			IsoDep isodep = IsoDep.get(tagFromIntent);
+			if(!isodep.isConnected()){
+				try{
+					isodep.connect();
+					byte[] sw = isodep.transceive(apdu);
+					strSW = bytesToHexString(sw, (sw.length - 2), 2);
+					if(strSW.equals("0x9000")){
+						strOPStatus = "写数据成功";
 					}
-					
-					
+					isodep.close();
+				}catch(Exception e){
+					e.printStackTrace();
 				}
-				else if(bWriteData){
-//					strApduCmdBody = "080880bf010003";
-//					strApduData = "31363" + Integer.toString(nNum % 10);
-					nNum ++;
-					
-				}
-				
-				
-				
-//				globalval.txDataToMCU(strApduCmdBody, strApduData, true);
-				
-				
-//				retcode = globalval.rxDataFromMCU();
-
-				
-				
-				
-
-			
-			
-			handler.post(runnableUi);   
-
 			}
-		};	
+			handler.post(runnableUi);
+		}
+	}
+	
+		
 		
 		Runnable runnableUi = new Runnable(){
 			@Override
@@ -253,7 +275,7 @@ public class CardTest extends Activity{
 			for (int i = startindex; i < startindex + length; i++) {
 				buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
 				buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
-				System.out.println(buffer);
+//				System.out.println(buffer);
 				stringBuilder.append(buffer);
 			}
 			return stringBuilder.toString();

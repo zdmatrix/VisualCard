@@ -141,13 +141,6 @@ public class ElectricMoney extends Activity{
 			
 			while(bIsRecording) {
 				
-//				retcode = globalval.waitPushCardButton();
-//				if(retcode.bLogic){
-//					bPushButton = true;
-//				}
-//				else
-//					bPushButton = false;
-				
 				if(bRecharge){
 					
 					if(1000 < Integer.parseInt(strRechargeData, 10)){
