@@ -2,13 +2,22 @@ package zdmatrix.hed.visualcard.UI;
 
 
 import zdmatrix.hed.visualcard.R;
+import zdmatrix.hed.visualcard.UI.Global.ReturnVal;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
+import android.nfc.tech.NfcA;
+import android.nfc.tech.NfcB;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
@@ -23,17 +32,27 @@ import android.widget.Toast;
 
 public class ElectricMoney extends Activity{
 	
-	boolean 			bIsRecording = false;//是否录放的标记
+	boolean 			bNFCConnected = false;//是否录放的标记
 	boolean				bRecharge = false;
 	boolean				bConsume = false;
 	boolean				bPushButton = false;
 	boolean				bReadBanlance = false;
 	
-	String 				strApduCmdBody;
+	String 				strSW;
+	String				strData;
 	String				strBanlance;
 	String				strRechargeData;
 	String				strConsumeData;
+	String[][]			strTechLists;
 	
+	NfcAdapter			nfcAdapter;
+	PendingIntent		pendingIntent;
+	Tag					tagFromIntent;
+	IntentFilter		ndef;
+	IntentFilter		tech;
+	IntentFilter		tag;
+	IntentFilter[]		intentfilter;
+	IsoDep				isodep;
 	
 	TextView			tvOpStatus;
 	TextView			tvReturnData1;
@@ -104,15 +123,63 @@ public class ElectricMoney extends Activity{
         btnReadBanlance = (Button)findViewById(R.id.btnReadBanlance);
         btnReadBanlance.setOnClickListener(new ClickEvent());
         
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if(nfcAdapter == null){
+        	tstDisInfo = Toast.makeText(getApplicationContext(), "该设备不支持NFC", Toast.LENGTH_LONG);
+        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+            tstDisInfo.show();
+        }else if(!nfcAdapter.isEnabled()){
+        	tstDisInfo = Toast.makeText(getApplicationContext(), "请在系统设置里打开NFC功能", Toast.LENGTH_LONG);
+        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+            tstDisInfo.show();
+        }
         
+        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        
+        ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        tech = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
+        tag = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        
+        intentfilter = new IntentFilter[]{ndef, tech, tag};
+        
+        strTechLists = new String[][]{new String[]{IsoDep.class.getName(),
+        		MifareClassic.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
         
     }
+	
+	@Override
+	public void onResume(){
+		super.onResume();
+		nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentfilter, strTechLists);
+	}
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		nfcAdapter.disableForegroundDispatch(this);
+	}
+	
+	@Override
+	public void onNewIntent(Intent intent){
+		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
+			bNFCConnected = true;
+			tstDisInfo = Toast.makeText(getApplicationContext(), "检测到NFC Tag", Toast.LENGTH_LONG);
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.show();
+		}
+		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		isodep = IsoDep.get(tagFromIntent);
+	}
 	
 	class ClickEvent implements View.OnClickListener {
 
 		public void onClick(View v) {
 			if (v == btnRecharge || v == btnConsume || v == btnReadBanlance){
-				bIsRecording = true;
+				if(!bNFCConnected){
+					tstDisInfo = Toast.makeText(getApplicationContext(), "请把卡放置到有效距离内", Toast.LENGTH_LONG);
+					tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+					tstDisInfo.show();
+				}else{
 				if(v == btnRecharge)
 					bRecharge = true;
 				else if(v == btnConsume)
@@ -120,7 +187,8 @@ public class ElectricMoney extends Activity{
 				else if(v == btnReadBanlance)
 					bReadBanlance = true;
 				new ElectriMoneyThread().start();// 开一条线程执行APDU测试
-			} 
+				} 
+			}
 			else if (v == btnReturnMain) {
 				/* 新建一个Intent对象 */
 				Intent intent = new Intent();
@@ -137,25 +205,12 @@ public class ElectricMoney extends Activity{
 	class ElectriMoneyThread extends Thread {
 		@Override
 		public void run() {
-			
-			
-			while(bIsRecording) {
 				
 				if(bRecharge){
 					
 					if(1000 < Integer.parseInt(strRechargeData, 10)){
 						handler.post(runnableRechargeWarningDialog);
 					}
-/*
-					int length = strRechargeData.length() + 5;
-					
-
-					strApduCmdBody = "08" + "0" + Integer.toHexString(length) 
-							+ "80bf0100" + "0" + Integer.toHexString(length - 5);
-					
-					globalval.txDataToMCU(strApduCmdBody, strRechargeData, false);
-					retcode = globalval.rxDataFromMCU();	
-*/
 					else{
 					Global.nBanlanceCash += Integer.parseInt(strRechargeData, 10);
 					bRecharge = false;
@@ -215,9 +270,9 @@ public class ElectricMoney extends Activity{
 					}
 					handler.post(runnableDisCardBanlance);
 				}
-				bIsRecording = false;
+				
 			}
-			}
+//			}
 		};	
 		
 		class WatiButtonThread extends Thread {
@@ -336,17 +391,38 @@ public class ElectricMoney extends Activity{
 						pdlogProcess = ProgressDialog.show(ElectricMoney.this, "请按下可视卡上按钮", "", true);
 						new Thread(){
 							public void run(){
+								byte[] apdubtn = new byte[5];
+								apdubtn[0] = (byte) 0x80;
+								apdubtn[1] = (byte) 0xbf;
+								apdubtn[2] = (byte) 0x06;
+								apdubtn[3] = (byte) 0x00;
+								apdubtn[4] = (byte) 0x00;
 								try{
-									retcode = globalval.waitPushCardButton();
-									if(retcode.bLogic){
-										
-										retcode = globalval.selectFile("00bf");
-		                            	if(retcode.bLogic){
-		                            		String str = Integer.toString(Global.nBanlanceCash, 16);
-			                            	globalval.updateSelectFileData(0, 0, str, 4);
-		                            	}
-										
+									isodep.connect();
+									byte[] sw = isodep.transceive(apdubtn);
+									strSW = bytesToHexString(sw, (sw.length - 2), 2);
+									if(strSW.equals("0x9000")){
+										byte[] apduselect = new byte[7];
+										apduselect[0] = 0x00;
+										apduselect[1] = (byte) 0xa4;
+										apduselect[2] = 0x00;
+										apduselect[3] = 0x00;
+										apduselect[4] = 0x02;
+										apduselect[5] = 0x00;
+										apduselect[6] = (byte) 0xbf;
+										try{
+											isodep.connect();
+											sw = isodep.transceive(apduselect);
+											strSW = bytesToHexString(sw, (sw.length - 2), 2);
+											if(strSW.equals("0x9000")){
+												String str = Integer.toString(Global.nBanlanceCash, 16); 
+											}
+											isodep.close();
+										}catch(Exception e){
+											e.printStackTrace();
+										}
 									}
+									isodep.close();
 								}catch(Exception e){
 									e.printStackTrace();
 								}
@@ -385,6 +461,63 @@ public class ElectricMoney extends Activity{
 			}
 		};
 		
-
-		
+		//字符序列转换为16进制字符串
+				private String bytesToHexString(byte[] src, int startindex, int length) {
+					StringBuilder stringBuilder = new StringBuilder("0x");
+					if (src == null || src.length <= 0) {
+						return null;
+					}
+					char[] buffer = new char[2];
+					for (int i = startindex; i < startindex + length; i++) {
+						buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
+						buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
+//						System.out.println(buffer);
+						stringBuilder.append(buffer);
+					}
+					return stringBuilder.toString();
+				}
+				
+		public void updateSelectFileData(int offsetlow, int offsethigh, String data, int length){
+					String stroffsetlow = "";
+					String stroffsethigh = "";
+					String apducmd = "";
+					
+					int len = data.length();
+					int index = 0;
+					if(offsetlow < 16)
+						stroffsetlow = "0" + Integer.toString(offsetlow, 16);
+					else
+						stroffsetlow = Integer.toString(offsetlow, 16);
+					
+					if(offsethigh < 16)
+						stroffsethigh = "0" + Integer.toString(offsethigh, 16);
+					else
+						stroffsethigh = Integer.toString(offsethigh, 16);
+					
+					apducmd = "080" + Integer.toString(length + 5, 16) + "00d6" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
+					
+					if(len < (length * 2)){
+						while(index < (length * 2 - len)){
+							data = "0" + data;
+							index ++;
+						}
+					}
+					
+					String str = apducmd + data;
+					byte[]	apdudisplayoncard = new byte[str.length() / 2];
+					for(int i = 0; i < apdudisplayoncard.length; i ++){
+						apdudisplayoncard[i] = 
+					}
+					txDataToMCU(apducmd, data, true);
+					ReturnVal retcode = rxDataFromMCU();
+					
+					String sw= intToString(retcode.nData, retcode.nLength - 2, retcode.nLength);
+					if(!sw.equals("9000"))
+						retcode.bLogic = false;
+					else{
+						
+						retcode.bLogic = true;
+					}
+					
+				}
 }
