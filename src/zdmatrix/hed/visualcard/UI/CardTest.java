@@ -1,6 +1,7 @@
 package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
+import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -210,6 +211,15 @@ public class CardTest extends Activity{
 				}catch(Exception e){
 					e.printStackTrace();
 				}
+/*
+			byte[] sw = NFCCommunication.dataSwitching(tagFromIntent, apdu);
+			strSW = bytesToHexString(sw, (sw.length - 2), 2);
+			strData = bytesToHexString(sw, 0, 8);
+			nRandomTimes ++;
+			if(strSW.equals("0x9000")){
+				strOPStatus = "第" + nRandomTimes + "次读随机数成功";
+			}
+*/			
 			handler.post(runnableUi);
 		}
 	}

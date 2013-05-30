@@ -2,7 +2,7 @@ package zdmatrix.hed.visualcard.UI;
 
 
 import zdmatrix.hed.visualcard.R;
-import zdmatrix.hed.visualcard.UI.Global.ReturnVal;
+import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -215,13 +215,7 @@ public class ElectricMoney extends Activity{
 					Global.nBanlanceCash += Integer.parseInt(strRechargeData, 10);
 					bRecharge = false;
 					handler.post(runnableConfirmDialog);
-					/*
-					retcode = globalval.waitPushCardButton();
-					if(retcode.bLogic){
-						globalval.disBanlanceOnCard(Global.nBanlanceCash);
-						handler.post(runnableDisCardBanlance);
-					}
-					*/
+					
 					}
 				}
 				else if(bConsume){
@@ -230,23 +224,10 @@ public class ElectricMoney extends Activity{
 						
 					}
 					else{
-/*
-						int length = strConsumeData.length() + 5;
-						strApduCmdBody = "08" + "0" + Integer.toHexString(length) 
-							+ "80bf0100" + "0" + Integer.toHexString(length - 5);
-						globalval.txDataToMCU(strApduCmdBody, strConsumeData, false);
-						retcode = globalval.rxDataFromMCU();	
-*/
 						bConsume = false;
 						Global.nBanlanceCash -= Integer.parseInt(strConsumeData, 10);
 						handler.post(runnableConfirmDialog);
-						/*
-						retcode = globalval.waitPushCardButton();
-						if(retcode.bLogic){
-							globalval.disBanlanceOnCard(Global.nBanlanceCash);
-							handler.post(runnableDisCardBanlance);
-						}
-						*/
+						
 					}
 				}
 				else if(bReadBanlance){
@@ -261,7 +242,6 @@ public class ElectricMoney extends Activity{
 					if(retcode.bLogic){
 			        Global.nBanlanceCash = Integer.parseInt(retcode.strRetData, 16);
 			        
-//			        retcode = globalval.disBanlanceOnCard(Global.nBanlanceCash);
 			        retcode.strRetInfo = "读余额成功";
 					}
 					else{
@@ -388,7 +368,7 @@ public class ElectricMoney extends Activity{
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						// TODO Auto-generated method stub
-						pdlogProcess = ProgressDialog.show(ElectricMoney.this, "请按下可视卡上按钮", "", true);
+//						pdlogProcess = ProgressDialog.show(ElectricMoney.this, "请按下可视卡上按钮", "", true);
 						new Thread(){
 							public void run(){
 								byte[] apdubtn = new byte[5];
@@ -401,6 +381,7 @@ public class ElectricMoney extends Activity{
 									isodep.connect();
 									byte[] sw = isodep.transceive(apdubtn);
 									strSW = bytesToHexString(sw, (sw.length - 2), 2);
+									isodep.close();
 									if(strSW.equals("0x9000")){
 										byte[] apduselect = new byte[7];
 										apduselect[0] = 0x00;
@@ -414,21 +395,22 @@ public class ElectricMoney extends Activity{
 											isodep.connect();
 											sw = isodep.transceive(apduselect);
 											strSW = bytesToHexString(sw, (sw.length - 2), 2);
+											isodep.close();
 											if(strSW.equals("0x9000")){
 												String str = Integer.toString(Global.nBanlanceCash, 16); 
+												updateSelectFileData(0, 0, str, 4);
 											}
-											isodep.close();
 										}catch(Exception e){
 											e.printStackTrace();
 										}
 									}
-									isodep.close();
+									
 								}catch(Exception e){
 									e.printStackTrace();
 								}
-								finally{
-									pdlogProcess.dismiss();
-								}
+//								finally{
+//									pdlogProcess.dismiss();
+//								}
 							}
 						}.start();
 					}
@@ -477,7 +459,7 @@ public class ElectricMoney extends Activity{
 					return stringBuilder.toString();
 				}
 				
-		public void updateSelectFileData(int offsetlow, int offsethigh, String data, int length){
+				public void updateSelectFileData(int offsetlow, int offsethigh, String data, int length){
 					String stroffsetlow = "";
 					String stroffsethigh = "";
 					String apducmd = "";
@@ -494,7 +476,7 @@ public class ElectricMoney extends Activity{
 					else
 						stroffsethigh = Integer.toString(offsethigh, 16);
 					
-					apducmd = "080" + Integer.toString(length + 5, 16) + "00d6" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
+					apducmd = "00d6" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
 					
 					if(len < (length * 2)){
 						while(index < (length * 2 - len)){
@@ -504,20 +486,14 @@ public class ElectricMoney extends Activity{
 					}
 					
 					String str = apducmd + data;
-					byte[]	apdudisplayoncard = new byte[str.length() / 2];
-					for(int i = 0; i < apdudisplayoncard.length; i ++){
-						apdudisplayoncard[i] = 
+					byte[]	apdudisplayoncard = DataTypeTrans.stringHexToByteArray(str);
+					try{
+						isodep.connect();
+						byte[] sw = isodep.transceive(apdudisplayoncard);
+						strSW = bytesToHexString(sw, sw.length - 2, 2);
+						isodep.close();
+					}catch(Exception e){
+						e.printStackTrace();
 					}
-					txDataToMCU(apducmd, data, true);
-					ReturnVal retcode = rxDataFromMCU();
-					
-					String sw= intToString(retcode.nData, retcode.nLength - 2, retcode.nLength);
-					if(!sw.equals("9000"))
-						retcode.bLogic = false;
-					else{
-						
-						retcode.bLogic = true;
-					}
-					
 				}
 }
