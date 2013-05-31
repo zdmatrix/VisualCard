@@ -44,7 +44,7 @@ public class Global {
 	public static final String CMDEXTERNIDENTIFY = "080d0082000008";
 	public static final String CMDGETREADYPUBLICKEY = "080580BF040280";
 	public static final String CMDGETRESPONSE = "480500C0000010";
-	public static final String CMDSELECTFILE = "080700A4000002";
+	public static final String CMDSELECTFILE = "00A4000002";
 	public static final String CMDCARDBUTTON = "080580BF060000";
 	public static final String CMDGETREADYAUTHCODE = "080580BF080000";
 	public static final String CMDRSAKEYPAIR = "08058046111200";
@@ -113,6 +113,8 @@ public class Global {
 	
 	
 	public int nImageData[] = new int[470];
+	
+	
 	
 	public class ReturnVal{
 		boolean bLogic = false;

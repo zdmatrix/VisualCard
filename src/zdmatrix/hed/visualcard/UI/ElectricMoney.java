@@ -3,6 +3,7 @@ package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
+import zdmatrix.hed.visualcard.UI.Global.ReturnVal;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -32,7 +33,7 @@ import android.widget.Toast;
 
 public class ElectricMoney extends Activity{
 	
-	boolean 			bNFCConnected = false;//是否录放的标记
+	boolean 			bNFCConnected = false;
 	boolean				bRecharge = false;
 	boolean				bConsume = false;
 	boolean				bPushButton = false;
@@ -44,6 +45,8 @@ public class ElectricMoney extends Activity{
 	String				strRechargeData;
 	String				strConsumeData;
 	String[][]			strTechLists;
+	
+	byte[] 				banlance = new byte[4];
 	
 	NfcAdapter			nfcAdapter;
 	PendingIntent		pendingIntent;
@@ -169,6 +172,14 @@ public class ElectricMoney extends Activity{
 		}
 		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 		isodep = IsoDep.get(tagFromIntent);
+		try{
+			isodep.connect();
+		}catch(Exception e){
+			e.printStackTrace();
+			tstDisInfo = Toast.makeText(getApplicationContext(), "isodep.connect失败", Toast.LENGTH_LONG);
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.show();
+		}
 	}
 	
 	class ClickEvent implements View.OnClickListener {
@@ -237,16 +248,25 @@ public class ElectricMoney extends Activity{
 					 * 读数据：00B0000004 
 					 * 返回：读取正常返回9000
 					 */
-					
+/*					
 					retcode = globalval.readBanlance("00bf", 0, 0, 4);
 					if(retcode.bLogic){
-			        Global.nBanlanceCash = Integer.parseInt(retcode.strRetData, 16);
+			        nBanlanceCash = Integer.parseInt(retcode.strRetData, 16);
 			        
 			        retcode.strRetInfo = "读余额成功";
 					}
 					else{
 						retcode.strRetInfo = "读余额错误";
 			        
+					}
+*/
+					
+					if(selectFile("00bf")){
+						if(readSelectFileData(0, 0, 4)){
+							
+							
+			                
+						}
 					}
 					handler.post(runnableDisCardBanlance);
 				}
@@ -290,20 +310,13 @@ public class ElectricMoney extends Activity{
 			@Override
 			public void run(){
 				
-				if(retcode.bLogic)
-					etBanlance.setText(Integer.toString(Global.nBanlanceCash));
-				else
-					etBanlance.setText("读余额错误");
+				
+				etBanlance.setText(Integer.toString(Global.nBanlanceCash));
+				
 			}
 		};
 		
-		Runnable runnableDisBanlance = new Runnable(){
-			@Override
-			public void run(){
-				
-				etBanlance.setText(Integer.toString(Global.nBanlanceCash));
-			}
-		};
+		
 		
 		Runnable runnableRechargeWarningDialog = new Runnable(){
 			@Override
@@ -371,6 +384,27 @@ public class ElectricMoney extends Activity{
 //						pdlogProcess = ProgressDialog.show(ElectricMoney.this, "请按下可视卡上按钮", "", true);
 						new Thread(){
 							public void run(){
+								byte[] apduselect = new byte[7];
+								apduselect[0] = 0x00;
+								apduselect[1] = (byte) 0xa4;
+								apduselect[2] = 0x00;
+								apduselect[3] = 0x00;
+								apduselect[4] = 0x02;
+								apduselect[5] = 0x00;
+								apduselect[6] = (byte) 0xbf;
+								try{
+//									isodep.connect();
+									byte[] sw = isodep.transceive(apduselect);
+									strSW = bytesToHexString(sw, (sw.length - 2), 2);
+//									isodep.close();
+									if(strSW.equals("9000")){
+										String str = Integer.toString(Global.nBanlanceCash, 16); 
+										updateSelectFileData(0, 0, str, 4);
+									}
+								}catch(Exception e){
+									e.printStackTrace();
+								}
+/*								
 								byte[] apdubtn = new byte[5];
 								apdubtn[0] = (byte) 0x80;
 								apdubtn[1] = (byte) 0xbf;
@@ -397,7 +431,7 @@ public class ElectricMoney extends Activity{
 											strSW = bytesToHexString(sw, (sw.length - 2), 2);
 											isodep.close();
 											if(strSW.equals("0x9000")){
-												String str = Integer.toString(Global.nBanlanceCash, 16); 
+												String str = Integer.toString(nBanlanceCash, 16); 
 												updateSelectFileData(0, 0, str, 4);
 											}
 										}catch(Exception e){
@@ -408,9 +442,11 @@ public class ElectricMoney extends Activity{
 								}catch(Exception e){
 									e.printStackTrace();
 								}
-//								finally{
-//									pdlogProcess.dismiss();
-//								}
+
+								finally{
+									pdlogProcess.dismiss();
+								}
+*/
 							}
 						}.start();
 					}
@@ -445,7 +481,7 @@ public class ElectricMoney extends Activity{
 		
 		//字符序列转换为16进制字符串
 				private String bytesToHexString(byte[] src, int startindex, int length) {
-					StringBuilder stringBuilder = new StringBuilder("0x");
+					StringBuilder stringBuilder = new StringBuilder("");
 					if (src == null || src.length <= 0) {
 						return null;
 					}
@@ -488,12 +524,95 @@ public class ElectricMoney extends Activity{
 					String str = apducmd + data;
 					byte[]	apdudisplayoncard = DataTypeTrans.stringHexToByteArray(str);
 					try{
-						isodep.connect();
+//						isodep.connect();
 						byte[] sw = isodep.transceive(apdudisplayoncard);
 						strSW = bytesToHexString(sw, sw.length - 2, 2);
-						isodep.close();
+//						isodep.close();
 					}catch(Exception e){
 						e.printStackTrace();
 					}
 				}
+
+/*				
+			public int readBanlance(String fileid, int offsetlow, int offsethigh, int length){
+				int ret = 0;
+				if(selectFile(fileid)){
+						if(readSelectFileData(offsetlow, offsethigh, length)){
+							for(int i = 0; i < 4; i ++){
+			        			ret += (retcode.nData[i] << ((3 - i) * 8));
+			        		}
+			        		String banlance = Integer.toHexString(ret);
+			                if(banlance.length() < (length * 2)){
+			                	int index = 0;
+			                	int max = 8 - banlance.length();
+			                	while(index < max){
+			                		banlance = "0" + banlance;
+			                		index ++;
+			                	}
+			                }
+						}
+					}
+					return ret;
+				}
+*/			
+			
+			public boolean selectFile(String addr){
+				boolean bret = false;
+				String apducmd = "00a4000002";
+				
+
+				byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + addr);
+				try{
+//					isodep.connect();
+					byte[] ret = isodep.transceive(apdu);
+//					isodep.close();
+					strSW = bytesToHexString(ret, ret.length - 2, 2);
+					if(strSW.equals("9000")){
+						bret = true;
+					}
+					return bret;
+				}catch(Exception e){
+					e.printStackTrace();
+					bret = false;
+					return bret;
+				}
+				
+			}
+			
+			public boolean readSelectFileData(int offsetlow, int offsethigh, int length){
+				boolean bret = false;
+				String stroffsetlow = "";
+				String stroffsethigh = "";
+				String apducmd = "";
+				
+				if(offsetlow < 16)
+					stroffsetlow = "0" + Integer.toString(offsetlow, 16);
+				else
+					stroffsetlow = Integer.toString(offsetlow, 16);
+				
+				if(offsethigh < 16)
+					stroffsethigh = "0" + Integer.toString(offsethigh, 16);
+				else
+					stroffsethigh = Integer.toString(offsethigh, 16);
+				
+				apducmd = "00b0" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
+
+				byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
+				try{
+//					isodep.connect();
+					byte[] ret = isodep.transceive(apdu);
+//					isodep.close();
+					strSW = bytesToHexString(ret, ret.length - 2, 2);
+					
+					if(strSW.equals("9000")){
+						Global.nBanlanceCash = DataTypeTrans.byteArray2Int(ret, 0, 4);
+						bret = true;
+					}
+					return bret;
+				}catch(Exception e){
+					bret = false;
+					e.printStackTrace();
+					return bret;
+				}
+			}
 }

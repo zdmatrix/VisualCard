@@ -3,18 +3,28 @@ package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.Alg.EncryptIn3DES;
+import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
+import zdmatrix.hed.visualcard.UI.Global.ReturnVal;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import android.graphics.drawable.BitmapDrawable;
 
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
+import android.nfc.tech.NfcA;
+import android.nfc.tech.NfcB;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -43,6 +53,7 @@ public class NewUKey extends Activity{
 	boolean				bGetImage = false;
 	boolean				bReadBanlance = false;
 	boolean				bReadBanlanceErr = false;
+	boolean 			bNFCConnected = false;
 	
 	String 				strSrcAccount;
 	String				strDstAccount;
@@ -52,6 +63,23 @@ public class NewUKey extends Activity{
 	String				strAuthCode;
 	String				strBanlanceCash;
 	String 				strRSAPubKey[] = new String[8];
+	String				strSW;
+	String				strData;
+	String[][]			strTechLists;
+	
+	byte[] 				banlance = new byte[4];
+	byte[]				randomdata = new byte[8];
+	byte[]				rsapublickey = new byte[18];
+	byte[]				authcode = new byte[6];
+	
+	NfcAdapter			nfcAdapter;
+	PendingIntent		pendingIntent;
+	Tag					tagFromIntent;
+	IntentFilter		ndef;
+	IntentFilter		tech;
+	IntentFilter		tag;
+	IntentFilter[]		intentfilter;
+	IsoDep				isodep;
 	
 	int					nImageSrcCount[] = new int[480];
 	int					nImageDstCount[] = new int[480];
@@ -168,9 +196,61 @@ public class NewUKey extends Activity{
         
         handler = new Handler();
   
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if(nfcAdapter == null){
+        	tstDisInfo = Toast.makeText(getApplicationContext(), "该设备不支持NFC", Toast.LENGTH_LONG);
+        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+            tstDisInfo.show();
+        }else if(!nfcAdapter.isEnabled()){
+        	tstDisInfo = Toast.makeText(getApplicationContext(), "请在系统设置里打开NFC功能", Toast.LENGTH_LONG);
+        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+            tstDisInfo.show();
+        }
         
+        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        
+        ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        tech = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
+        tag = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        
+        intentfilter = new IntentFilter[]{ndef, tech, tag};
+        
+        strTechLists = new String[][]{new String[]{IsoDep.class.getName(),
+        		MifareClassic.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
         
 	}       
+	
+	@Override
+	public void onResume(){
+		super.onResume();
+		nfcAdapter.enableForegroundDispatch(this, pendingIntent, intentfilter, strTechLists);
+	}
+	
+	@Override
+	public void onPause(){
+		super.onPause();
+		nfcAdapter.disableForegroundDispatch(this);
+	}
+	
+	@Override
+	public void onNewIntent(Intent intent){
+		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
+			bNFCConnected = true;
+			tstDisInfo = Toast.makeText(getApplicationContext(), "检测到NFC Tag", Toast.LENGTH_LONG);
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.show();
+		}
+		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		isodep = IsoDep.get(tagFromIntent);
+		try{
+			isodep.connect();
+		}catch(Exception e){
+			e.printStackTrace();
+			tstDisInfo = Toast.makeText(getApplicationContext(), "isodep.connect失败", Toast.LENGTH_LONG);
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.show();
+		}
+	}
 	
 	class ClickEvent implements View.OnClickListener { 
 		public void onClick(View v) {
@@ -212,44 +292,25 @@ public class NewUKey extends Activity{
 	class NewUKeyThread extends Thread {
 		@Override
 		public void run() {
-			String sw = "";
-			String readkeysw = "";
 			
-			String errinfo[] = new String[1000];
-			int index = 0;
 			strSrcAccount = Integer.toString(Global.DEFAULTSRCACCOUNT);
 
-			
-			
-			
-			
 			if(bGenerateRSAKey){
 				handler.post(runnableDisProgressBar);
-				retcode = globalval.resetCard();
 				
-				retcode = globalval.generateRSAKeyPair();
-				if(retcode.bLogic){
+				if(generateRSAKeyPair()){
 					bRSAKey = true;
-					retcode = globalval.getReadyPublicKey();
-					if(retcode.bLogic){
-
+					if(getReadyPublicKey()){
 						for(count = 0; count < 8; count ++){
-							retcode = globalval.readPublicKey();
-							sw = globalval.intToString(retcode.nData, retcode.nLength - 2, retcode.nLength);
-							if(7 == count){
-								readkeysw = "9000";
+							if(readPublicKey(count)){
+								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥成功", Toast.LENGTH_SHORT);
+					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+					            tstDisInfo.show();
 							}
-							else
-								readkeysw = "61" + Integer.toHexString(128 - (count + 1) * Global.FILELENGTHONETIME);
-							if(sw.equals(readkeysw)){
-								strRSAPubKey[count] = globalval.intToString(retcode.nData, 0, retcode.nLength - 2);
-								retcode.strRetInfo = "第" + (count + 1) + " 次取公钥成功";
-								}
 							else{
-								retcode.strRetInfo = "第" + (count + 1) + " 次取公钥失败";
-								errinfo[index] = retcode.strRetInfo;
-								index ++;
-								break;
+								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥失败", Toast.LENGTH_SHORT);
+					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+					            tstDisInfo.show();
 							}
 							
 							if(count == 7){
@@ -265,37 +326,35 @@ public class NewUKey extends Activity{
 							
 							handler.post(runnableDisRetInfo);
 						}
-						
 					}
-				
 					else{
-						retcode.strRetInfo += "准备公钥操作失败";
-						errinfo[index] = retcode.strRetInfo;
-						index ++;
+//						retcode.strRetInfo += "准备公钥操作失败";
+//						errinfo[index] = retcode.strRetInfo;
+//						index ++;
 					}
 				}
 				else{
-					retcode.strRetInfo += "生成公私钥对失败";
-					errinfo[index] = retcode.strRetInfo;
-					index ++;
+//					retcode.strRetInfo += "生成公私钥对失败";
+//					errinfo[index] = retcode.strRetInfo;
+//					index ++;
 				}
-
-				retcode.strRetInfo = "取公钥成功完成！";
+				
+//				retcode.strRetInfo = "取公钥成功完成！";
 				bGenerateRSAKey = false;
 				handler.post(runnableDisRSAPubKey); 
 			}
 			
 			else{
 				if(bTxDataToCard){
-					retcode = globalval.readBanlance("00bf", 0, 0, 4);
-				    Global.nBanlanceCash = Integer.parseInt(retcode.strRetData, 16);
-					
-					
-					if(Global.nBanlanceCash < Integer.parseInt(strRechargeData, 10)){
-						handler.post(runnableWarningDialog);
+					if(selectFile("00bf")){
+						if(readSelectFileData(0, 0, 4)){
+							if(Global.nBanlanceCash < Integer.parseInt(strRechargeData, 10)){
+								handler.post(runnableWarningDialog);
+							}
+							else{
+							strAuthCode = "";
+						}
 					}
-					else{
-					strAuthCode = "";			
 					
 					nImageSrcCount = globalval.getImageData(strSrcAccount);
 					nImageDstCount = globalval.getImageData(strDstAccount);
@@ -308,21 +367,20 @@ public class NewUKey extends Activity{
 					}
 
 					//取认证码，00C0000006
-					retcode = globalval.getAuthCode();
-					if(retcode.bLogic){
-						for(int i = 0; i < 6; i ++){
-							strAuthCode += Integer.toString(retcode.nData[i] - 48);
-						}
+					
+					if(getAuthCode()){
+						int[] code = DataTypeTrans.byteArray2IntArray(authcode);
+						for(int i = 0; i < code.length; i ++)
+							strAuthCode += Integer.toString(code[i] - 48);
 						nImageAuthCode = globalval.getImageData(strAuthCode);
 						for(int i = 0; i < 470; i ++)
-							byImageAuthCode[i] = (byte)nImageAuthCode[i];		
-					}
+							byImageAuthCode[i] = (byte)nImageAuthCode[i];
+						disNumOnCard(strAuthCode);
+						handler.post(runnableDisImage); 
 						
+						handler.post(runnableConfirmDialog);
+					}
 					
-					globalval.disAuthorCodeOnCard(strAuthCode);
-					handler.post(runnableDisImage); 
-					
-					handler.post(runnableConfirmDialog);
 /*					
 					retcode = globalval.waitPushCardButton();
 					if(retcode.bLogic){
@@ -396,18 +454,12 @@ public class NewUKey extends Activity{
 						 * 返回：读取正常返回9000
 						 */
 						
-						retcode = globalval.readBanlance("00bf", 0, 0, 4);
-						if(retcode.bLogic){
-				        Global.nBanlanceCash = Integer.parseInt(retcode.strRetData, 16);
-				        
-//				        retcode = globalval.disBanlanceOnCard(Global.nBanlanceCash);
-				        retcode.strRetInfo = "读余额成功";
+						if(selectFile("00bf")){
+							if(readSelectFileData(0, 0, 4)){
+								handler.post(runnableDisCardBanlance);
+							}
 						}
-						else{
-							retcode.strRetInfo = "读余额错误";
-				        
-						}
-						handler.post(runnableDisCardBanlance);
+						
 					}
 				}
 				
@@ -437,10 +489,9 @@ public class NewUKey extends Activity{
 			@Override
 			public void run(){
 //				etStatus.setText(retcode.strRetInfo);
-				if(retcode.bLogic)
-					etBanlanceCash.setText(Integer.toString(Global.nBanlanceCash));
-				else
-					etBanlanceCash.setText("读余额错误");
+				
+				etBanlanceCash.setText(Integer.toString(Global.nBanlanceCash));
+				
 			}
 		};
 		
@@ -512,26 +563,23 @@ public class NewUKey extends Activity{
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						// TODO Auto-generated method stub
-						pdlogProcess = ProgressDialog.show(NewUKey.this, "请按下可视卡上按钮", "", true);
+//						pdlogProcess = ProgressDialog.show(NewUKey.this, "请按下可视卡上按钮", "", true);
 						new Thread(){
 							public void run(){
 								try{
-									retcode = globalval.waitPushCardButton();
-									if(retcode.bLogic){
-										Global.nBanlanceCash -= Integer.parseInt(strRechargeData, 10);
-										retcode = globalval.selectFile("00bf");
-		                            	if(retcode.bLogic){
-		                            		String str = Integer.toString(Global.nBanlanceCash, 16);
-			                            	globalval.updateSelectFileData(0, 0, str, 4);
-		                            	}
-										
+//									retcode = globalval.waitPushCardButton();
+									Global.nBanlanceCash -= Integer.parseInt(strRechargeData, 10);
+									String str = Integer.toString(Global.nBanlanceCash, 16);
+									if(selectFile("00bf")){
+										updateSelectFileData(0, 0, str, 4);
 									}
+									
 									sleep(2000);
 								}catch(Exception e){
 									e.printStackTrace();
 								}
 								finally{
-									pdlogProcess.dismiss();
+//									pdlogProcess.dismiss();
 								}
 							}
 						}.start();
@@ -703,6 +751,340 @@ Handler progressBarHandler = new Handler(){
 			}
 		};
 		
+		public boolean generateRSAKeyPair(){
+			EncryptIn3DES encryptin3DES = new EncryptIn3DES();
+			
+			boolean bret = false;
+			//取8byte随机数，0084000008
+			if(get8ByteRandomData()){
+				int[] encryped = DataTypeTrans.byteArray2IntArray(randomdata);
+				int encryptdata[] = encryptin3DES.DES3Go(encryped, Global.Key, 0);
+				byte[] identifydata = DataTypeTrans.intArray2ByteArray(encryptdata);
+				if(externIdentify(identifydata)){
+					byte[] apdu = new byte[5];
+					apdu[0] = (byte) 0x80;
+					apdu[1] = 0x46;
+					apdu[2] = 0x11;
+					apdu[3] = 0x12;
+					apdu[4] = 0x00;
+					try{
+						byte[] response = isodep.transceive(apdu);
+						strSW = bytesToHexString(response, response.length - 2, 2);
+						if(strSW.equals("9000")){
+							
+							bret = true;
+						}
+						
+					}catch(Exception e){
+						e.printStackTrace();
+						bret = false;
+						
+					}
+				}
+			}
+			return bret;
+		}
+
+		
+		public boolean get8ByteRandomData(){
+			byte[] apdu = new byte[5];
+			apdu[0] = 0x00;
+			apdu[1] = (byte) 0x84;
+			apdu[2] = 0x00;
+			apdu[3] = 0x00;
+			apdu[4] = 0x08;
+			boolean bret = false;
+			try{
+				byte[] response = isodep.transceive(apdu);
+				strSW = bytesToHexString(response, response.length - 2, 2);
+			
+				if(strSW.equals("9000")){
+					for(int i = 0; i < 8; i ++){
+						randomdata[i] = response[i];
+					}
+					bret = true;
+				}
+				return bret;
+			}catch(Exception e){
+				e.printStackTrace();
+				bret = false;
+				return bret;
+			}
+		}
+		
+		public boolean externIdentify(byte[] data){
+			boolean bret = false;
+			byte[] apdu = new byte[13];
+			apdu[0] = 0x00;
+			apdu[1] = (byte) 0x82;
+			apdu[2] = 0x00;
+			apdu[3] = 0x00;
+			apdu[4] = 0x08;
+			apdu[5] = data[0];
+			apdu[6] = data[1];
+			apdu[7] = data[2];
+			apdu[8] = data[3];
+			apdu[9] = data[4];
+			apdu[10] = data[5];
+			apdu[11] = data[6];
+			apdu[12] = data[7];
+			
+			try{
+				byte[] response = isodep.transceive(apdu);
+				strSW = bytesToHexString(response, response.length - 2, 2);
+				
+				if(strSW.equals("9000")){
+					bret = true;
+					
+				}
+				return bret;
+			}catch(Exception e){
+				e.printStackTrace();
+				bret = false;
+				return bret;
+			}
+			
+		}
+		
+		public boolean getReadyPublicKey(){
+			byte[] apdu = new byte[5];
+			apdu[0] = (byte) 0x80;
+			apdu[1] = (byte) 0xbf;
+			apdu[2] = 0x04;
+			apdu[3] = 0x02;
+			apdu[4] = (byte) 0x80;
+			boolean bret = false;
+			try{
+				byte[] response = isodep.transceive(apdu);
+				strSW = bytesToHexString(response, response.length - 2, 2);
+			
+				if(strSW.equals("9000")){
+					bret = true;
+				}
+				return bret;
+			}catch(Exception e){
+				e.printStackTrace();
+				bret = false;
+				return bret;
+			}
+		}
+		
+		public boolean readPublicKey(int count){
+			String readkeysw = "";
+			byte[] apdu = new byte[5];
+			apdu[0] = (byte) 0x00;
+			apdu[1] = (byte) 0xc0;
+			apdu[2] = 0x00;
+			apdu[3] = 0x00;
+			apdu[4] = (byte) 0x10;
+			boolean bret = false;
+			try{
+				byte[] response = isodep.transceive(apdu);
+				strSW = bytesToHexString(response, response.length - 2, 2); 
+				if(7 == count){
+					readkeysw = "9000";
+				}
+				else
+					readkeysw = "61" + Integer.toHexString(128 - (count + 1) * Global.FILELENGTHONETIME);
+				if(strSW.equals(readkeysw)){
+					strRSAPubKey[count] = DataTypeTrans.byteToString(response, 0, response.length - 2);
+//					retcode.strRetInfo = "第" + (count + 1) + " 次取公钥成功";
+					
+//				else{
+//					retcode.strRetInfo = "第" + (count + 1) + " 次取公钥失败";
+//					errinfo[index] = retcode.strRetInfo;
+//					index ++;
+//					break;
+				
+				bret = true;
+				}
+				else{
+					bret = false;
+				}
+				return bret;
+			}catch(Exception e){
+				e.printStackTrace();
+				bret = false;
+				return bret;
+			}
+		}
 		
 		
+		
+		
+		//字符序列转换为16进制字符串
+		private String bytesToHexString(byte[] src, int startindex, int length) {
+			StringBuilder stringBuilder = new StringBuilder("");
+			if (src == null || src.length <= 0) {
+				return null;
+			}
+			char[] buffer = new char[2];
+			for (int i = startindex; i < startindex + length; i++) {
+				buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
+				buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
+//				System.out.println(buffer);
+				stringBuilder.append(buffer);
+			}
+			return stringBuilder.toString();
+		}
+		
+		public void updateSelectFileData(int offsetlow, int offsethigh, String data, int length){
+			String stroffsetlow = "";
+			String stroffsethigh = "";
+			String apducmd = "";
+			
+			int len = data.length();
+			int index = 0;
+			if(offsetlow < 16)
+				stroffsetlow = "0" + Integer.toString(offsetlow, 16);
+			else
+				stroffsetlow = Integer.toString(offsetlow, 16);
+			
+			if(offsethigh < 16)
+				stroffsethigh = "0" + Integer.toString(offsethigh, 16);
+			else
+				stroffsethigh = Integer.toString(offsethigh, 16);
+			
+			apducmd = "00d6" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
+			
+			if(len < (length * 2)){
+				while(index < (length * 2 - len)){
+					data = "0" + data;
+					index ++;
+				}
+			}
+			
+			String str = apducmd + data;
+			byte[]	apdudisplayoncard = DataTypeTrans.stringHexToByteArray(str);
+			try{
+//				isodep.connect();
+				byte[] sw = isodep.transceive(apdudisplayoncard);
+				strSW = bytesToHexString(sw, sw.length - 2, 2);
+//				isodep.close();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}	
+	
+	public boolean selectFile(String addr){
+		boolean bret = false;
+		String apducmd = "00a4000002";
+		
+
+		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + addr);
+		try{
+//			isodep.connect();
+			byte[] ret = isodep.transceive(apdu);
+//			isodep.close();
+			strSW = bytesToHexString(ret, ret.length - 2, 2);
+			if(strSW.equals("9000")){
+				bret = true;
+			}
+			return bret;
+		}catch(Exception e){
+			e.printStackTrace();
+			bret = false;
+			return bret;
+		}
+		
+	}
+	
+	public boolean readSelectFileData(int offsetlow, int offsethigh, int length){
+		boolean bret = false;
+		String stroffsetlow = "";
+		String stroffsethigh = "";
+		String apducmd = "";
+		
+		if(offsetlow < 16)
+			stroffsetlow = "0" + Integer.toString(offsetlow, 16);
+		else
+			stroffsetlow = Integer.toString(offsetlow, 16);
+		
+		if(offsethigh < 16)
+			stroffsethigh = "0" + Integer.toString(offsethigh, 16);
+		else
+			stroffsethigh = Integer.toString(offsethigh, 16);
+		
+		apducmd = "00b0" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
+
+		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
+		try{
+//			isodep.connect();
+			byte[] ret = isodep.transceive(apdu);
+//			isodep.close();
+			strSW = bytesToHexString(ret, ret.length - 2, 2);
+			
+			if(strSW.equals("9000")){
+				Global.nBanlanceCash = DataTypeTrans.byteArray2Int(ret, 0, 4);
+				bret = true;
+			}
+			return bret;
+		}catch(Exception e){
+			bret = false;
+			e.printStackTrace();
+			return bret;
+		}
+	}
+	
+	public boolean getAuthCode(){
+		boolean bret = false;
+		String apducmd = "80bf080000";
+		
+
+		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
+		try{
+
+			byte[] ret = isodep.transceive(apdu);
+			strSW = bytesToHexString(ret, ret.length - 2, 2);
+			if(strSW.equals("9000")){
+				apducmd = "00c0000006";
+				apdu = DataTypeTrans.stringHexToByteArray(apducmd);
+				try{
+					ret = isodep.transceive(apdu);
+					strSW = bytesToHexString(ret, ret.length - 2, 2);
+					
+					if(strSW.equals("9000")){
+						for(int i = 0; i < 6; i ++){
+							authcode[i] = ret[i];
+						}
+						bret = true;
+					}
+				}catch(Exception e){
+					e.printStackTrace();
+					bret = false;
+				}
+				bret = true;
+			}
+			return bret;
+		}catch(Exception e){
+			e.printStackTrace();
+			bret = false;
+			return bret;
+		}
+		
+	}
+	
+	public boolean disNumOnCard(String authcode){
+//		String apducmd = "80bf01000" + Integer.toHexString(authcode.length());
+		boolean bret = false;
+		String apducmd = "80bf010006";
+		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + authcode);
+		
+		try{
+
+			byte[] ret = isodep.transceive(apdu);
+			strSW = bytesToHexString(ret, ret.length - 2, 2);
+			
+			if(strSW.equals("9000")){
+				bret = true;
+			}
+			return bret;
+		}catch(Exception e){
+			e.printStackTrace();
+			bret = false;
+			return bret;
+		}
+		
+		
+	}
 }

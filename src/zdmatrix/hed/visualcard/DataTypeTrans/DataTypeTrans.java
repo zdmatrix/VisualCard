@@ -53,5 +53,47 @@ public class DataTypeTrans {
 		return sdata;
 	}
 	
+	public static int byteArray2Int(byte[] array, int startindex, int length) {  
+        int result = 0;  
+        byte loop;  
+  
+        for (int i = startindex; i < length; i++) {  
+            loop = array[i];  
+            int offSet = length -i -1;  
+            result += (loop & 0xFF) << (8 * offSet);  
+  
+        }  
+        return result;  
+    }
 	
+	public static byte[] intArray2ByteArray(int[] array){
+		byte[] ret = new byte[array.length];
+		for(int i = 0; i < array.length; i ++){
+			ret[i] = (byte)array[i];
+		}
+		return ret;
+	}
+	
+	public static int[] byteArray2IntArray(byte[] array){
+		int[] ret = new int[array.length];
+		for(int i = 0; i < array.length; i ++){
+			ret[i] = (int)array[i];
+		}
+		return ret;
+	}
+	
+	public static String byteToString(byte[] data, int startindex, int endindex){
+		String sdata = "";
+		int[] tmp = byteArray2IntArray(data);
+//		System.arraycopy(data, 0, tmp, 0, data.length);
+		for(int i = startindex; i < endindex; i ++){
+			
+			if(tmp[i] < 16)
+				sdata += ("0" + Integer.toHexString(tmp[i]));
+			else
+				sdata += Integer.toHexString(tmp[i]);
+			
+		}
+		return sdata;
+	}
 }
