@@ -28,7 +28,7 @@
                 <data android:mimeType='text/plain'/>
             </intent-filter><intent-filter android:label="NFC TECH">
                 <action android:name="android.nfc.action.TECH_DISCOVERED"/>
-            </intent-filter><intent-filter android:label="NFC Tag">
+            </intent-filter><intent-filter android:label="NFC Tag OTP">
                 <action android:name="android.nfc.action.TAG_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter><meta-data android:name="android.nfc.action.TECH_DISCOVERED" android:resource="@xml/tech_list"/></activity>
@@ -37,7 +37,7 @@
                 <data android:mimeType='text/plain'/>
             </intent-filter><intent-filter android:label="NFC TECH">
                 <action android:name="android.nfc.action.TECH_DISCOVERED"/>
-            </intent-filter><intent-filter android:label="NFC Tag">
+            </intent-filter><intent-filter android:label="NFC Tag ElectricMoney">
                 <action android:name="android.nfc.action.TAG_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter><meta-data android:name="android.nfc.action.TECH_DISCOVERED" android:resource="@xml/tech_list"/></activity>
@@ -46,7 +46,7 @@
                 <data android:mimeType='text/plain'/>
             </intent-filter><intent-filter android:label="NFC TECH">
                 <action android:name="android.nfc.action.TECH_DISCOVERED"/>
-            </intent-filter><intent-filter android:label="NFC Tag">
+            </intent-filter><intent-filter android:label="NFC Tag NewUKey">
                 <action android:name="android.nfc.action.TAG_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter><meta-data android:name="android.nfc.action.TECH_DISCOVERED" android:resource="@xml/tech_list"/></activity>
@@ -58,7 +58,7 @@
             <intent-filter android:label="NFC TECH">
                 <action android:name="android.nfc.action.TECH_DISCOVERED"/>
             </intent-filter>
-            <intent-filter android:label="NFC Tag">
+            <intent-filter android:label="NFC Tag CardTest">
                 <action android:name="android.nfc.action.TAG_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>

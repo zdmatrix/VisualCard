@@ -36,18 +36,17 @@ public class DataTypeTrans {
 		return ret;
 	}
 	/*int型数组转化为String型*/
-	public static String byteToString(int[] data, int startindex, int endindex){
+	public static String intToString(int[] data, int startindex, int endindex){
 		String sdata = "";
-		int[] tmp = new int[data.length];
-		System.arraycopy(data, 0, tmp, 0, data.length);
 		for(int i = startindex; i < endindex; i ++){
 			try{
-			if(tmp[i] < 16)
-				sdata += ("0" + Integer.toHexString(tmp[i]));
+			if(data[i] < 16)
+				sdata += ("0" + Integer.toHexString(data[i]));
+			
 			else
-				sdata += Integer.toHexString(tmp[i]);
+				sdata += Integer.toHexString(data[i]);
 			}catch(Exception e){
-				Log.v("zdmatrix", "在intToString中接收错误，第 " + i + "次返回信息" + e);
+				e.printStackTrace();
 			}
 		}
 		return sdata;
@@ -78,20 +77,24 @@ public class DataTypeTrans {
 		int[] ret = new int[array.length];
 		for(int i = 0; i < array.length; i ++){
 			ret[i] = (int)array[i];
+			
+			ret[i] &= 0xff;
 		}
+		
 		return ret;
 	}
 	
 	public static String byteToString(byte[] data, int startindex, int endindex){
 		String sdata = "";
 		int[] tmp = byteArray2IntArray(data);
-//		System.arraycopy(data, 0, tmp, 0, data.length);
+
 		for(int i = startindex; i < endindex; i ++){
 			
 			if(tmp[i] < 16)
 				sdata += ("0" + Integer.toHexString(tmp[i]));
 			else
 				sdata += Integer.toHexString(tmp[i]);
+			
 			
 		}
 		return sdata;

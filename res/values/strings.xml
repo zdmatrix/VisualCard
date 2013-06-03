@@ -63,5 +63,9 @@
     <string name="test">名字起长点就是为了测试</string>
     <string name="action_settings">VisualCard</string>
     <string name="tagInfo">标签信息</string>
+    <string name="ChallengeCode">挑战码</string>
+    <string name="Responese">应答码</string>
+    <string name="GenerateChallenge">生成挑战码</string>
+    <string name="InputCardNum">请输入卡上显示的数字</string>
 
 </resources>

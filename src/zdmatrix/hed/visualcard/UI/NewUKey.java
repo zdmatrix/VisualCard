@@ -67,6 +67,8 @@ public class NewUKey extends Activity{
 	String				strData;
 	String[][]			strTechLists;
 	
+	String				strInfo = "";
+	
 	byte[] 				banlance = new byte[4];
 	byte[]				randomdata = new byte[8];
 	byte[]				rsapublickey = new byte[18];
@@ -160,8 +162,11 @@ public class NewUKey extends Activity{
         etRSAKey = (EditText)findViewById(R.id.etRSAKey);
         
 
-       	
-        
+        etDstAccount = (EditText) findViewById(R.id.etDstAccount);
+        etDstAccount.setHint(Integer.toString(Global.DEFAULTDSTACCOUNT));
+        etDstAccount.setEnabled(false);
+
+/*        
 		etDstAccount.setOnKeyListener(new EditText.OnKeyListener() {
 			public boolean onKey(View arg0, int arg1, KeyEvent arg2)
 			{
@@ -169,7 +174,7 @@ public class NewUKey extends Activity{
 				return false;
 			}
 		});
-		
+*/		
 		etRechargeData.setOnKeyListener(new EditText.OnKeyListener() {
 			public boolean onKey(View arg0, int arg1, KeyEvent arg2)
 			{
@@ -294,23 +299,31 @@ public class NewUKey extends Activity{
 		public void run() {
 			
 			strSrcAccount = Integer.toString(Global.DEFAULTSRCACCOUNT);
+			strDstAccount = Integer.toString(Global.DEFAULTDSTACCOUNT);
 
 			if(bGenerateRSAKey){
 				handler.post(runnableDisProgressBar);
-				
+/*				
+				byte[] info = isodep.getHistoricalBytes();
+				strInfo = DataTypeTrans.byteToString(info, 0, info.length - 1);
+				handler.post(runnableDisRetInfo);
+*/				
 				if(generateRSAKeyPair()){
+					
+					
+					
 					bRSAKey = true;
 					if(getReadyPublicKey()){
 						for(count = 0; count < 8; count ++){
 							if(readPublicKey(count)){
-								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥成功", Toast.LENGTH_SHORT);
-					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-					            tstDisInfo.show();
+//								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥成功", Toast.LENGTH_SHORT);
+//					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+//					            tstDisInfo.show();
 							}
 							else{
-								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥失败", Toast.LENGTH_SHORT);
-					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-					            tstDisInfo.show();
+//								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥失败", Toast.LENGTH_SHORT);
+//					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+//					            tstDisInfo.show();
 							}
 							
 							if(count == 7){
@@ -499,7 +512,7 @@ public class NewUKey extends Activity{
 			@Override
 			public void run(){
 //				etStatus.setText(retcode.strRetInfo);
-				
+				etRSAKey.setText(strInfo);
 			}
 		};
 		
@@ -761,6 +774,7 @@ Handler progressBarHandler = new Handler(){
 				int encryptdata[] = encryptin3DES.DES3Go(encryped, Global.Key, 0);
 				byte[] identifydata = DataTypeTrans.intArray2ByteArray(encryptdata);
 				if(externIdentify(identifydata)){
+/*
 					byte[] apdu = new byte[5];
 					apdu[0] = (byte) 0x80;
 					apdu[1] = 0x46;
@@ -768,6 +782,7 @@ Handler progressBarHandler = new Handler(){
 					apdu[3] = 0x12;
 					apdu[4] = 0x00;
 					try{
+
 						byte[] response = isodep.transceive(apdu);
 						strSW = bytesToHexString(response, response.length - 2, 2);
 						if(strSW.equals("9000")){
@@ -780,6 +795,10 @@ Handler progressBarHandler = new Handler(){
 						bret = false;
 						
 					}
+*/
+				bret = true;
+				}else{
+					bret = false;
 				}
 			}
 			return bret;
@@ -830,6 +849,7 @@ Handler progressBarHandler = new Handler(){
 			apdu[12] = data[7];
 			
 			try{
+				
 				byte[] response = isodep.transceive(apdu);
 				strSW = bytesToHexString(response, response.length - 2, 2);
 				
@@ -1068,10 +1088,15 @@ Handler progressBarHandler = new Handler(){
 //		String apducmd = "80bf01000" + Integer.toHexString(authcode.length());
 		boolean bret = false;
 		String apducmd = "80bf010006";
-		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + authcode);
-		
+//		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + authcode);
+		byte[] apdu = new byte[11];
+		byte[] apdu1 = DataTypeTrans.stringHexToByteArray(apducmd);
+		byte[] apdu2 = DataTypeTrans.stringDecToByteArray(authcode);
+		System.arraycopy(apdu1, 0, apdu, 0, apdu1.length);
+		System.arraycopy(apdu2, 0, apdu, apdu1.length, apdu2.length);
 		try{
 
+			isodep.setTimeout(1000);
 			byte[] ret = isodep.transceive(apdu);
 			strSW = bytesToHexString(ret, ret.length - 2, 2);
 			

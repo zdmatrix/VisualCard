@@ -37,6 +37,7 @@ public class Global {
 	public static final int RECORDTHRESHOLDVAL = 10000;
 	public static final int INITBANLANCECASH = 10000;
 	public static final int DEFAULTSRCACCOUNT = 1234567890;
+	public static final int DEFAULTDSTACCOUNT = 1096358741;
 	
 	public static final int GENERATERSAKEYPAIROK = 0xc0;
 	

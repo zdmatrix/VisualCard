@@ -1,5 +1,7 @@
 package zdmatrix.hed.visualcard.UI;
 
+import java.io.IOException;
+
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import android.app.Activity;
@@ -56,7 +58,7 @@ public class CardTest extends Activity{
 	Button 				btnPowerDown;
 	Button 				btnWriteData;
 	
-//	IsoDep				isodep;
+	IsoDep				isodep;
 	NfcAdapter			nfcAdapter;
 	PendingIntent		pendingIntent;
 	Tag					tagFromIntent;
@@ -135,7 +137,15 @@ public class CardTest extends Activity{
 			bNFCConnected = true;
 		}
 		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-		
+/*
+		isodep = IsoDep.get(tagFromIntent);
+		try {
+			isodep.connect();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+*/		
 		strTagInfo += "This Tag Supports as follows: \n";
 		for(String techlist : tagFromIntent.getTechList()){
 			strTagInfo +=  techlist + "\n";
