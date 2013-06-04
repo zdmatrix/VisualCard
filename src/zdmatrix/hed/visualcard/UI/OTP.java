@@ -547,7 +547,7 @@ public class OTP extends Activity{
 					}
 					isodep.setTimeout(30000);
 					byte[] ret = isodep.transceive(apdu);
-					strSW = DataTypeTrans.byteToString(ret, ret.length - 2, 2);
+					strSW = DataTypeTrans.bytesArrayToHexString(ret, ret.length - 2, 2);
 					if(strSW.equals("9000")){
 						bret = true;
 					}

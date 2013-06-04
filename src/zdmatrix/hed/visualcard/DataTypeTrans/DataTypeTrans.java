@@ -1,6 +1,5 @@
 package zdmatrix.hed.visualcard.DataTypeTrans;
 
-import android.util.Log;
 
 public class DataTypeTrans {
 	public static byte[] stringHexToByteArray(String s){
@@ -35,8 +34,9 @@ public class DataTypeTrans {
 		}
 		return ret;
 	}
+	
 	/*int型数组转化为String型*/
-	public static String intToString(int[] data, int startindex, int endindex){
+	public static String intArrayToString(int[] data, int startindex, int endindex){
 		String sdata = "";
 		for(int i = startindex; i < endindex; i ++){
 			try{
@@ -84,19 +84,18 @@ public class DataTypeTrans {
 		return ret;
 	}
 	
-	public static String byteToString(byte[] data, int startindex, int endindex){
-		String sdata = "";
-		int[] tmp = byteArray2IntArray(data);
-
-		for(int i = startindex; i < endindex; i ++){
-			
-			if(tmp[i] < 16)
-				sdata += ("0" + Integer.toHexString(tmp[i]));
-			else
-				sdata += Integer.toHexString(tmp[i]);
-			
-			
+	//字符序列转换为16进制字符串
+	public static String bytesArrayToHexString(byte[] src, int startindex, int length) {
+		StringBuilder stringBuilder = new StringBuilder("");
+		if (src == null || src.length <= 0) {
+			return null;
 		}
-		return sdata;
+		char[] buffer = new char[2];
+		for (int i = startindex; i < startindex + length; i++) {
+			buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
+			buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
+			stringBuilder.append(buffer);
+		}
+		return stringBuilder.toString();
 	}
 }

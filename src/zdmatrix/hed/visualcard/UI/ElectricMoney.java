@@ -395,7 +395,7 @@ public class ElectricMoney extends Activity{
 								try{
 //									isodep.connect();
 									byte[] sw = isodep.transceive(apduselect);
-									strSW = bytesToHexString(sw, (sw.length - 2), 2);
+									strSW = DataTypeTrans.bytesArrayToHexString(sw, (sw.length - 2), 2);
 //									isodep.close();
 									if(strSW.equals("9000")){
 										String str = Integer.toString(Global.nBanlanceCash, 16); 
@@ -479,21 +479,7 @@ public class ElectricMoney extends Activity{
 			}
 		};
 		
-		//字符序列转换为16进制字符串
-				private String bytesToHexString(byte[] src, int startindex, int length) {
-					StringBuilder stringBuilder = new StringBuilder("");
-					if (src == null || src.length <= 0) {
-						return null;
-					}
-					char[] buffer = new char[2];
-					for (int i = startindex; i < startindex + length; i++) {
-						buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
-						buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
-//						System.out.println(buffer);
-						stringBuilder.append(buffer);
-					}
-					return stringBuilder.toString();
-				}
+		
 				
 				public void updateSelectFileData(int offsetlow, int offsethigh, String data, int length){
 					String stroffsetlow = "";
@@ -526,7 +512,7 @@ public class ElectricMoney extends Activity{
 					try{
 //						isodep.connect();
 						byte[] sw = isodep.transceive(apdudisplayoncard);
-						strSW = bytesToHexString(sw, sw.length - 2, 2);
+						strSW = DataTypeTrans.bytesArrayToHexString(sw, sw.length - 2, 2);
 //						isodep.close();
 					}catch(Exception e){
 						e.printStackTrace();
@@ -563,10 +549,8 @@ public class ElectricMoney extends Activity{
 
 				byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + addr);
 				try{
-//					isodep.connect();
 					byte[] ret = isodep.transceive(apdu);
-//					isodep.close();
-					strSW = bytesToHexString(ret, ret.length - 2, 2);
+					strSW = DataTypeTrans.bytesArrayToHexString(ret, ret.length - 2, 2);
 					if(strSW.equals("9000")){
 						bret = true;
 					}
@@ -602,7 +586,7 @@ public class ElectricMoney extends Activity{
 //					isodep.connect();
 					byte[] ret = isodep.transceive(apdu);
 //					isodep.close();
-					strSW = bytesToHexString(ret, ret.length - 2, 2);
+					strSW = DataTypeTrans.bytesArrayToHexString(ret, ret.length - 2, 2);
 					
 					if(strSW.equals("9000")){
 						Global.nBanlanceCash = DataTypeTrans.byteArray2Int(ret, 0, 4);

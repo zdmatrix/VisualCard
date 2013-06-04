@@ -907,7 +907,7 @@ Handler progressBarHandler = new Handler(){
 				else
 					readkeysw = "61" + Integer.toHexString(128 - (count + 1) * Global.FILELENGTHONETIME);
 				if(strSW.equals(readkeysw)){
-					strRSAPubKey[count] = DataTypeTrans.byteToString(response, 0, response.length - 2);
+					strRSAPubKey[count] = DataTypeTrans.bytesArrayToHexString(response, 0, response.length - 2);
 //					retcode.strRetInfo = "第" + (count + 1) + " 次取公钥成功";
 					
 //				else{

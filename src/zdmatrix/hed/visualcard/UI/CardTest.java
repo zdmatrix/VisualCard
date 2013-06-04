@@ -1,9 +1,8 @@
 package zdmatrix.hed.visualcard.UI;
 
-import java.io.IOException;
-
 import zdmatrix.hed.visualcard.R;
-import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
+import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
+import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -18,10 +17,12 @@ import android.nfc.tech.NfcB;
 import android.os.Bundle;
 import android.os.Handler;
 
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class CardTest extends Activity{
@@ -37,6 +38,7 @@ public class CardTest extends Activity{
 	
 	int					nNum = 0;
 	int					nRandomTimes = 0;
+	byte[]				bRamdomData = new byte[8];
 	
 	String 				strSW;
 	String				strData;
@@ -45,6 +47,8 @@ public class CardTest extends Activity{
 	String				strOPStatus = "";
 	
 	TextView			tvTagInfo;
+	
+	Toast				tstDisInfo;
 	
 	EditText			etOPStatus;
 	EditText    		etReturnData;
@@ -130,31 +134,22 @@ public class CardTest extends Activity{
 	
 	@Override
 	public void onNewIntent(Intent intent){
-		String intenttype = intent.getAction();
-		strTagInfo += "Android NFC Dispatch System dispatch intent: \n" + intenttype + "\n"; 
 		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
-			
 			bNFCConnected = true;
+			tstDisInfo = Toast.makeText(getApplicationContext(), "检测到NFC Tag", Toast.LENGTH_LONG);
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.show();
 		}
 		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-/*
 		isodep = IsoDep.get(tagFromIntent);
-		try {
+		try{
 			isodep.connect();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		}catch(Exception e){
 			e.printStackTrace();
+			tstDisInfo = Toast.makeText(getApplicationContext(), "isodep.connect失败", Toast.LENGTH_LONG);
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.show();
 		}
-*/		
-		strTagInfo += "This Tag Supports as follows: \n";
-		for(String techlist : tagFromIntent.getTechList()){
-			strTagInfo +=  techlist + "\n";
-		}
-		tvTagInfo.setText(strTagInfo);
-		strTagInfo = "";
-		strOPStatus = "检测到NFC Tag";
-		etOPStatus.setText(strOPStatus);
-		strOPStatus = "";
 	}
 	
 	class ClickEvent implements View.OnClickListener {
@@ -200,36 +195,16 @@ public class CardTest extends Activity{
 	class GetRandomDataThread extends Thread{
 		@Override
 		public void run(){
-			byte[] apdu = new byte[5];
-			apdu[0] = 0x00;
-			apdu[1] = (byte)0x84;
-			apdu[2] = 0x00;
-			apdu[3] = 0x00;
-			apdu[4] = 0x08;
-
-			IsoDep isodep = IsoDep.get(tagFromIntent);
-				try{
-					isodep.connect();
-					byte[] sw = isodep.transceive(apdu);
-					strSW = bytesToHexString(sw, (sw.length - 2), 2);
-					strData = bytesToHexString(sw, 0, 8);
-					nRandomTimes ++;
-					if(strSW.equals("0x9000")){
-						strOPStatus = "第" + nRandomTimes + "次读随机数成功";
-					}
-					isodep.close();
-				}catch(Exception e){
-					e.printStackTrace();
-				}
-/*
-			byte[] sw = NFCCommunication.dataSwitching(tagFromIntent, apdu);
-			strSW = bytesToHexString(sw, (sw.length - 2), 2);
-			strData = bytesToHexString(sw, 0, 8);
 			nRandomTimes ++;
-			if(strSW.equals("0x9000")){
+			if(FunctionMode.get8ByteRandom(bRamdomData, isodep)){
+				strSW = "0x9000";
+				strData = DataTypeTrans.bytesArrayToHexString(bRamdomData, 0, 8);
 				strOPStatus = "第" + nRandomTimes + "次读随机数成功";
+			}else{
+				strSW = null;
+				strOPStatus = "第" + nRandomTimes + "次读随机数失败";
 			}
-*/			
+			
 			handler.post(runnableUi);
 		}
 	}
@@ -237,31 +212,15 @@ public class CardTest extends Activity{
 	class WriteDataThread extends Thread{
 		@Override
 		public void run(){
-			byte[] apdu = new byte[8];
-			apdu[0] = (byte)0x80;
-			apdu[1] = (byte)0xbf;
-			apdu[2] = 0x01;
-			apdu[3] = 0x00;
-			apdu[4] = 0x03;
-			apdu[5] = 0x31;
-			apdu[6] = 0x36;
-			apdu[7] = (byte) (0x30 + (nNum % 10));
-			nNum ++;
-			
-			IsoDep isodep = IsoDep.get(tagFromIntent);
-			if(!isodep.isConnected()){
-				try{
-					isodep.connect();
-					byte[] sw = isodep.transceive(apdu);
-					strSW = bytesToHexString(sw, (sw.length - 2), 2);
-					if(strSW.equals("0x9000")){
-						strOPStatus = "写数据成功";
-					}
-					isodep.close();
-				}catch(Exception e){
-					e.printStackTrace();
-				}
+			String code = "16" + Integer.toString(nNum % 10, 16);
+			if(FunctionMode.disNumOnCard(code, isodep)){
+				strSW = "0x9000";
+				strOPStatus = "第" + nNum + "次写数据成功";
+			}else{
+				strSW = null;
+				strOPStatus = "第" + nNum + "次写数据失败";
 			}
+			
 			handler.post(runnableUi);
 		}
 	}
@@ -284,23 +243,6 @@ public class CardTest extends Activity{
 				
 			}
 		};
-		
-		//字符序列转换为16进制字符串
-		private String bytesToHexString(byte[] src, int startindex, int length) {
-			StringBuilder stringBuilder = new StringBuilder("0x");
-			if (src == null || src.length <= 0) {
-				return null;
-			}
-			char[] buffer = new char[2];
-			for (int i = startindex; i < startindex + length; i++) {
-				buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
-				buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
-//				System.out.println(buffer);
-				stringBuilder.append(buffer);
-			}
-			return stringBuilder.toString();
-		}
-		
-		
+				
 		
 }
