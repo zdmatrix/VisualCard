@@ -154,11 +154,15 @@ public class OTP extends Activity{
 	class ClickEvent implements View.OnClickListener {
 
 		public void onClick(View v) {
-			if(isodep == null){
-				NFCCommunication.nfcConnectFailed(getApplicationContext());
-			}else if(!isodep.isConnected()){
-				NFCCommunication.nfcConnectFailed(getApplicationContext());
-			}else{
+			if(v == btnGenerateChallenge){
+				if(isodep == null){
+					NFCCommunication.nfcConnectFailed(getApplicationContext());
+				}else{
+					new OTPThread().start();
+				}
+				
+			}
+			
 				if (v == btnReturnMain) {
 					/* 新建一个Intent对象 */
 					Intent intent = new Intent();
@@ -170,10 +174,8 @@ public class OTP extends Activity{
 					OTP.this.finish();
 				}
 			
-				if(v == btnGenerateChallenge){
-					new OTPThread().start();
-				}
-			}
+				
+			
 		}
 	}
 	

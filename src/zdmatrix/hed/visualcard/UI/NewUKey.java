@@ -85,7 +85,7 @@ public class NewUKey extends Activity{
 	IntentFilter		tech;
 	IntentFilter		tag;
 	IntentFilter[]		intentfilter;
-	IsoDep				isodep;
+	IsoDep				isodep = null;
 	
 	int					nImageSrcCount[] = new int[480];
 	int					nImageDstCount[] = new int[480];
@@ -270,32 +270,33 @@ public class NewUKey extends Activity{
 	
 	class ClickEvent implements View.OnClickListener { 
 		public void onClick(View v) {
-			if(isodep == null){
-				NFCCommunication.nfcConnectFailed(getApplicationContext());
-			}else{
-				if(v == btnTxDataToCard){
-					bTxDataToCard = true;
+			if(v == btnTxDataToCard || v == btnGenerateRSAKey || v == btnReadBanlance){
+				if(isodep == null){
+					NFCCommunication.nfcConnectFailed(getApplicationContext());
+				}else{
+					if(v == btnTxDataToCard){
+						bTxDataToCard = true;
+					}
+	        		if(v == btnGenerateRSAKey){
+	        			bGenerateRSAKey = true;
+	        		}
+	        		if(v == btnReadBanlance){
+	        				bReadBanlance = true;
+	            	}
+	        		new NewUKeyThread().start();// 开一条线程执行APDU测试
 				}
-        		if(v == btnGenerateRSAKey){
-        			bGenerateRSAKey = true;
-        		}
-        		if(v == btnReadBanlance){
-        				bReadBanlance = true;
-            	}
-        		if(v == btnReturnMain) {
-        		
-                	/* 新建一个Intent对象 */
-                		Intent intent = new Intent();
-        			/* 指定intent要启动的类 */
-                		intent.setClass(NewUKey.this, MainActivity.class);
-        			/* 启动一个新的Activity */
-                		startActivity(intent);
-        			/* 关闭当前的Activity */
-                		NewUKey.this.finish();
-                }
-        		
-        		new NewUKeyThread().start();// 开一条线程执行APDU测试
 			}
+			if(v == btnReturnMain) {
+        		
+                /* 新建一个Intent对象 */
+                	Intent intent = new Intent();
+        		/* 指定intent要启动的类 */
+                	intent.setClass(NewUKey.this, MainActivity.class);
+        		/* 启动一个新的Activity */
+                	startActivity(intent);
+        		/* 关闭当前的Activity */
+                	NewUKey.this.finish();
+        	}
 		}
 	}
 
@@ -1081,4 +1082,5 @@ public class NewUKey extends Activity{
 			int gPixelMask = (0x80 >> (x % 8));
 			buf[gx] &= ~gPixelMask;
 		}	
+	
 }
