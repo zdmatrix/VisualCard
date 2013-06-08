@@ -1,15 +1,19 @@
 package zdmatrix.hed.visualcard.UI;
 
 
+import java.util.Random;
+
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.Alg.EncryptIn3DES;
+import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
-import zdmatrix.hed.visualcard.UI.Global.ReturnVal;
+import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -70,7 +74,7 @@ public class NewUKey extends Activity{
 	String				strInfo = "";
 	
 	byte[] 				banlance = new byte[4];
-	byte[]				randomdata = new byte[8];
+	
 	byte[]				rsapublickey = new byte[18];
 	byte[]				authcode = new byte[6];
 	
@@ -88,6 +92,7 @@ public class NewUKey extends Activity{
 	int					nImageRechargeData[] = new int[480];
 	int					nImageAuthCode[] = new int[480];
 	int					count = 0;
+	int					nBanlanceCash;
 	static final int 	GUI_STOP_NOTIFIER = 0x108;
 	static final int 	GUI_THREADING_NOTIFIER = 0x109;
 
@@ -135,9 +140,30 @@ public class NewUKey extends Activity{
 	EncryptIn3DES 		encryptin3DES = new EncryptIn3DES();
 	Handler				handler = null;
 	
-	Global globalval = new Global();
-	Global.ReturnVal retcode = globalval.new ReturnVal();
+	public static final int DEFAULTSRCACCOUNT = 1234567890;
+	public static final int DEFAULTDSTACCOUNT = 1023456789;
 	
+	private static final int NUM0[]  = { 7, 1, 2, 4, 6, 5, 3, 1 };
+	private static final int NUM1[]  = { 2, 2, 6 };
+	private static final int NUM2[]  = { 6, 1, 2, 4, 3, 5, 6 };
+	private static final int NUM3[]  = { 7, 1, 2, 4, 3, 4, 6, 5 };
+	private static final int NUM4[]  = { 6, 1, 3, 4, 2, 4, 6 };
+	private static final int NUM5[]  = { 6, 2, 1, 3, 4, 6, 5 };
+	private static final int NUM6[]  = { 7, 2, 1, 3, 4, 6, 5, 3 };
+	private static final int NUM7[]  = { 3, 1, 2, 6 };
+	private static final int NUM8[]  = { 9, 1, 2, 4, 6, 5, 3, 1, 3, 4 };
+	private static final int NUM9[]  = { 7, 4, 2, 1, 3, 4, 6, 5 };
+
+	private static final int NUM09[][] = { NUM0, NUM1, NUM2, NUM3, NUM4, NUM5, NUM6, NUM7, NUM8, NUM9 };
+	
+	private final int ORG[][] ={
+			{0, 0},
+			{6, 0},
+			{0, 6},
+			{6, 6},
+			{0, 12},
+			{6, 12},
+	};
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -152,7 +178,7 @@ public class NewUKey extends Activity{
         m_ProgressBar.setIndeterminate(false);
         
         etSrcAccount = (EditText) findViewById(R.id.etSrcAccount);
-		etSrcAccount.setHint(Integer.toString(Global.DEFAULTSRCACCOUNT));
+		etSrcAccount.setHint(Integer.toString(DEFAULTSRCACCOUNT));
      	etSrcAccount.setEnabled(false);
 		
         etRechargeData = (EditText)findViewById(R.id.etRechargeData);
@@ -163,7 +189,7 @@ public class NewUKey extends Activity{
         
 
         etDstAccount = (EditText) findViewById(R.id.etDstAccount);
-        etDstAccount.setHint(Integer.toString(Global.DEFAULTDSTACCOUNT));
+        etDstAccount.setHint(Integer.toString(DEFAULTDSTACCOUNT));
         etDstAccount.setEnabled(false);
 
 /*        
@@ -239,43 +265,24 @@ public class NewUKey extends Activity{
 	
 	@Override
 	public void onNewIntent(Intent intent){
-		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
-			bNFCConnected = true;
-			tstDisInfo = Toast.makeText(getApplicationContext(), "检测到NFC Tag", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
-		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-		isodep = IsoDep.get(tagFromIntent);
-		try{
-			isodep.connect();
-		}catch(Exception e){
-			e.printStackTrace();
-			tstDisInfo = Toast.makeText(getApplicationContext(), "isodep.connect失败", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
+		isodep = NFCCommunication.nfcConnectInit(intent, getApplicationContext());
 	}
 	
 	class ClickEvent implements View.OnClickListener { 
 		public void onClick(View v) {
-        	if (v == btnTxDataToCard){
-        		
-        		bTxDataToCard = true;
-        		new NewUKeyThread().start();// 开一条线程执行APDU测试
-        	}
-        	
-        	else{
+			if(isodep == null){
+				NFCCommunication.nfcConnectFailed(getApplicationContext());
+			}else{
+				if(v == btnTxDataToCard){
+					bTxDataToCard = true;
+				}
         		if(v == btnGenerateRSAKey){
         			bGenerateRSAKey = true;
-        			new NewUKeyThread().start();
         		}
-        		else {
-        			if(v == btnReadBanlance){
+        		if(v == btnReadBanlance){
         				bReadBanlance = true;
-            			new NewUKeyThread().start();
-        			}
-        			else if(v == btnReturnMain) {
+            	}
+        		if(v == btnReturnMain) {
         		
                 	/* 新建一个Intent对象 */
                 		Intent intent = new Intent();
@@ -285,12 +292,11 @@ public class NewUKey extends Activity{
                 		startActivity(intent);
         			/* 关闭当前的Activity */
                 		NewUKey.this.finish();
-                	}
-        		}
-        	}
-        	
-        	
-        }
+                }
+        		
+        		new NewUKeyThread().start();// 开一条线程执行APDU测试
+			}
+		}
 	}
 
 	
@@ -298,70 +304,47 @@ public class NewUKey extends Activity{
 		@Override
 		public void run() {
 			
-			strSrcAccount = Integer.toString(Global.DEFAULTSRCACCOUNT);
-			strDstAccount = Integer.toString(Global.DEFAULTDSTACCOUNT);
+			strSrcAccount = Integer.toString(DEFAULTSRCACCOUNT);
+			strDstAccount = Integer.toString(DEFAULTDSTACCOUNT);
 
 			if(bGenerateRSAKey){
 				handler.post(runnableDisProgressBar);
-/*				
-				byte[] info = isodep.getHistoricalBytes();
-				strInfo = DataTypeTrans.byteToString(info, 0, info.length - 1);
-				handler.post(runnableDisRetInfo);
-*/				
-				if(generateRSAKeyPair()){
-					
-					
-					
-					bRSAKey = true;
-					if(getReadyPublicKey()){
+				if(FunctionMode.generateRSAKeyPair(isodep)){
+					if(FunctionMode.getReadyPublicKey(isodep)){
 						for(count = 0; count < 8; count ++){
-							if(readPublicKey(count)){
-//								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥成功", Toast.LENGTH_SHORT);
-//					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-//					            tstDisInfo.show();
-							}
-							else{
-//								tstDisInfo = Toast.makeText(getApplicationContext(), "第" + count + "次读公钥失败", Toast.LENGTH_SHORT);
-//					        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-//					            tstDisInfo.show();
-							}
-							
-							if(count == 7){
-								Message m = new Message();
-								m.what = GUI_STOP_NOTIFIER;
-								progressBarHandler.sendMessage(m);
-							}
-							else{
-								Message m = new Message();
-								m.what = GUI_THREADING_NOTIFIER;
-								progressBarHandler.sendMessage(m);
+							if(FunctionMode.readPublicKey(count, isodep, rsapublickey)){
+								strRSAPubKey[count] = DataTypeTrans.bytesArrayToHexString(rsapublickey, 0, 16);
+								if(count == 7){
+									Message m = new Message();
+									m.what = GUI_STOP_NOTIFIER;
+									progressBarHandler.sendMessage(m);
+								}else{
+									Message m = new Message();
+									m.what = GUI_THREADING_NOTIFIER;
+									progressBarHandler.sendMessage(m);
+								}
+							}else{
+								handler.post(disRSAKeyToastMsg);;
+								break;
 							}
 							
-							handler.post(runnableDisRetInfo);
 						}
+						handler.post(runnableDisRSAPubKey);
+					}else{
+						handler.post(disGetReadyKeyToastMsg);
 					}
-					else{
-//						retcode.strRetInfo += "准备公钥操作失败";
-//						errinfo[index] = retcode.strRetInfo;
-//						index ++;
-					}
+				}else{
+					handler.post(disGenerateKeyToastMsg);
 				}
-				else{
-//					retcode.strRetInfo += "生成公私钥对失败";
-//					errinfo[index] = retcode.strRetInfo;
-//					index ++;
-				}
-				
-//				retcode.strRetInfo = "取公钥成功完成！";
 				bGenerateRSAKey = false;
-				handler.post(runnableDisRSAPubKey); 
+				 
 			}
 			
 			else{
 				if(bTxDataToCard){
-					if(selectFile("00bf")){
-						if(readSelectFileData(0, 0, 4)){
-							if(Global.nBanlanceCash < Integer.parseInt(strRechargeData, 10)){
+					if(FunctionMode.selectFile("00bf", isodep)){
+						if((nBanlanceCash = FunctionMode.readSelectFileData(isodep)) >= 0){
+							if(nBanlanceCash < Integer.parseInt(strRechargeData, 10)){
 								handler.post(runnableWarningDialog);
 							}
 							else{
@@ -369,9 +352,9 @@ public class NewUKey extends Activity{
 						}
 					}
 					
-					nImageSrcCount = globalval.getImageData(strSrcAccount);
-					nImageDstCount = globalval.getImageData(strDstAccount);
-					nImageRechargeData = globalval.getImageData(strRechargeData);
+					nImageSrcCount = getImageData(strSrcAccount);
+					nImageDstCount = getImageData(strDstAccount);
+					nImageRechargeData = getImageData(strRechargeData);
 					
 					for(int i = 0; i < 470; i ++){
 						byImageSrcCount[i] = (byte)nImageSrcCount[i]; 
@@ -381,14 +364,14 @@ public class NewUKey extends Activity{
 
 					//取认证码，00C0000006
 					
-					if(getAuthCode()){
+					if(FunctionMode.getAuthCode(isodep, authcode)){
 						int[] code = DataTypeTrans.byteArray2IntArray(authcode);
 						for(int i = 0; i < code.length; i ++)
 							strAuthCode += Integer.toString(code[i] - 48);
-						nImageAuthCode = globalval.getImageData(strAuthCode);
+						nImageAuthCode = getImageData(strAuthCode);
 						for(int i = 0; i < 470; i ++)
 							byImageAuthCode[i] = (byte)nImageAuthCode[i];
-						disNumOnCard(strAuthCode);
+						FunctionMode.disNumOnCard(strAuthCode, isodep);
 						handler.post(runnableDisImage); 
 						
 						handler.post(runnableConfirmDialog);
@@ -467,8 +450,8 @@ public class NewUKey extends Activity{
 						 * 返回：读取正常返回9000
 						 */
 						
-						if(selectFile("00bf")){
-							if(readSelectFileData(0, 0, 4)){
+						if(FunctionMode.selectFile("00bf", isodep)){
+							if((nBanlanceCash = FunctionMode.readSelectFileData(isodep)) >= 0){
 								handler.post(runnableDisCardBanlance);
 							}
 						}
@@ -494,7 +477,6 @@ public class NewUKey extends Activity{
 				for(String str:strRSAPubKey)
 					rsapubkey += str;
 				etRSAKey.setText(rsapubkey);
-//				etStatus.setText(retcode.strRetInfo);
 			}
 		};
 		
@@ -503,7 +485,7 @@ public class NewUKey extends Activity{
 			public void run(){
 //				etStatus.setText(retcode.strRetInfo);
 				
-				etBanlanceCash.setText(Integer.toString(Global.nBanlanceCash));
+				etBanlanceCash.setText(Integer.toString(nBanlanceCash));
 				
 			}
 		};
@@ -549,8 +531,36 @@ public class NewUKey extends Activity{
 			}
 		};
 		
+		Runnable disGenerateKeyToastMsg = new Runnable(){
+			@Override
+			public void run(){
+				tstDisInfo = Toast.makeText(getApplicationContext(), "生成公钥失败", Toast.LENGTH_SHORT);
+				tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+				tstDisInfo.show();
+			}
+			
+		};
 		
+		Runnable disGetReadyKeyToastMsg = new Runnable(){
+			@Override
+			public void run(){
+				tstDisInfo = Toast.makeText(getApplicationContext(), "准备公钥失败", Toast.LENGTH_SHORT);
+				tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+				tstDisInfo.show();
+			}
+			
+		};
 		
+		Runnable disRSAKeyToastMsg = new Runnable(){
+			@Override
+			public void run(){
+				tstDisInfo = Toast.makeText(getApplicationContext(), "取公钥失败", Toast.LENGTH_SHORT);
+				tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+				tstDisInfo.show();
+			}
+			
+		};
+			
 		Runnable runnableDisToast = new Runnable(){
 			@Override
 			public void run(){
@@ -581,10 +591,10 @@ public class NewUKey extends Activity{
 							public void run(){
 								try{
 //									retcode = globalval.waitPushCardButton();
-									Global.nBanlanceCash -= Integer.parseInt(strRechargeData, 10);
-									String str = Integer.toString(Global.nBanlanceCash, 16);
-									if(selectFile("00bf")){
-										updateSelectFileData(0, 0, str, 4);
+									nBanlanceCash -= Integer.parseInt(strRechargeData, 10);
+									String str = Integer.toString(nBanlanceCash, 16);
+									if(FunctionMode.selectFile("00bf", isodep)){
+										FunctionMode.updateSelectFileData(str, isodep);
 									}
 									
 									sleep(2000);
@@ -625,6 +635,7 @@ public class NewUKey extends Activity{
 				dlogConfirm.show();
 			}
 		};
+		
 		Runnable runnableDealDialog = new Runnable(){
 			@Override
 			public void run(){
@@ -668,9 +679,9 @@ public class NewUKey extends Activity{
 		                            try
 		                            { 
 		                            	sleep(1000);
-		                            	globalval.selectFile("00bf");
-		                            	String str = Integer.toString(Global.nBanlanceCash, 16);
-		                            	globalval.updateSelectFileData(0, 0, str, 4);
+		                            	FunctionMode.selectFile("00bf", isodep);
+		                            	String str = Integer.toString(nBanlanceCash, 16);
+		                            	FunctionMode.updateSelectFileData(str, isodep);
 		                            }
 		                            catch (Exception e)
 		                            {
@@ -733,7 +744,7 @@ public class NewUKey extends Activity{
 		}
 		
 		
-Handler progressBarHandler = new Handler(){
+		Handler progressBarHandler = new Handler(){
 			
 			public void handleMessage(Message msg){
 				switch(msg.what){
@@ -764,352 +775,310 @@ Handler progressBarHandler = new Handler(){
 			}
 		};
 		
-		public boolean generateRSAKeyPair(){
-			EncryptIn3DES encryptin3DES = new EncryptIn3DES();
+		public int[] getImageData(String sdata){
+			int length = sdata.length();
+			int ndata[] = DataTypeTrans.stringDecToIntArray(sdata);
+			int ndataarray[] = new int[470];
+			for(int i = 0; i < 470; i ++)
+				ndataarray[i] = 0xff;
 			
-			boolean bret = false;
-			//取8byte随机数，0084000008
-			if(get8ByteRandomData()){
-				int[] encryped = DataTypeTrans.byteArray2IntArray(randomdata);
-				int encryptdata[] = encryptin3DES.DES3Go(encryped, Global.Key, 0);
-				byte[] identifydata = DataTypeTrans.intArray2ByteArray(encryptdata);
-				if(externIdentify(identifydata)){
-/*
-					byte[] apdu = new byte[5];
-					apdu[0] = (byte) 0x80;
-					apdu[1] = 0x46;
-					apdu[2] = 0x11;
-					apdu[3] = 0x12;
-					apdu[4] = 0x00;
-					try{
+			// 位图文件的类型，必须为BM
+			ndataarray[0x00] = 0x42;		// B
+			ndataarray[0x01] = 0x4D;		// M
 
-						byte[] response = isodep.transceive(apdu);
-						strSW = bytesToHexString(response, response.length - 2, 2);
-						if(strSW.equals("9000")){
-							
-							bret = true;
-						}
-						
-					}catch(Exception e){
-						e.printStackTrace();
-						bret = false;
-						
-					}
-*/
-				bret = true;
-				}else{
-					bret = false;
-				}
-			}
-			return bret;
-		}
+			// 位图文件的大小，以字节为单位
+			ndataarray[0x02] = 0xD6;
+			ndataarray[0x03] = 0x01;
+			//把4张图片合成在一起，4 × 470
+//			ndataarray[0x02] = 0x58;
+//			ndataarray[0x03] = 0x07;
+			//
+			ndataarray[0x04] = 0x00;
+			ndataarray[0x05] = 0x00;
 
-		
-		public boolean get8ByteRandomData(){
-			byte[] apdu = new byte[5];
-			apdu[0] = 0x00;
-			apdu[1] = (byte) 0x84;
-			apdu[2] = 0x00;
-			apdu[3] = 0x00;
-			apdu[4] = 0x08;
-			boolean bret = false;
-			try{
-				byte[] response = isodep.transceive(apdu);
-				strSW = bytesToHexString(response, response.length - 2, 2);
+			// 位图文件保留字，必须为0
+			ndataarray[0x06] = 0x00;
+			ndataarray[0x07] = 0x00;
+			ndataarray[0x08] = 0x00;
+			ndataarray[0x09] = 0x00;
+
+			// 位图数据的起始位置，以相对于位图
+			ndataarray[0x0A] = 0x3E;
+			ndataarray[0x0B] = 0x00;
+			ndataarray[0x0C] = 0x00;
+			ndataarray[0x0D] = 0x00;
+
+			// 位图信息头的长度
+			ndataarray[0x0E] = 0x28;
+			ndataarray[0x0F] = 0x00;
+			ndataarray[0x10] = 0x00;
+			ndataarray[0x11] = 0x00;
+
+			// 位图的宽度
+			ndataarray[0x12] = 0xC0;
+			ndataarray[0x13] = 0x00;
+			ndataarray[0x14] = 0x00;
+			ndataarray[0x15] = 0x00;
+
+			// 位图的高度
+			ndataarray[0x16] = 0x11;
+//			ndataarray[0x16] = 0x44;		//为了4张图拼接在一起
+			ndataarray[0x17] = 0x00;
+			ndataarray[0x18] = 0x00;
+			ndataarray[0x19] = 0x00;
+
+			// 位图的位面数
+			ndataarray[0x1A] = 0x01;
+			ndataarray[0x1B] = 0x00;
+
+			// 每个象素的位数
+			ndataarray[0x1C] = 0x01;
+			ndataarray[0x1D] = 0x00;
+
+			// 压缩说明
+			ndataarray[0x1E] = 0x00;
+			ndataarray[0x1F] = 0x00;
+			ndataarray[0x20] = 0x00;
+			ndataarray[0x21] = 0x00;
+
+			// 用字节数表示的位图数据的大小，该数必须是4的倍数
+			ndataarray[0x22] = 0x98;
+			ndataarray[0x23] = 0x01;
 			
-				if(strSW.equals("9000")){
-					for(int i = 0; i < 8; i ++){
-						randomdata[i] = response[i];
-					}
-					bret = true;
-				}
-				return bret;
-			}catch(Exception e){
-				e.printStackTrace();
-				bret = false;
-				return bret;
-			}
-		}
-		
-		public boolean externIdentify(byte[] data){
-			boolean bret = false;
-			byte[] apdu = new byte[13];
-			apdu[0] = 0x00;
-			apdu[1] = (byte) 0x82;
-			apdu[2] = 0x00;
-			apdu[3] = 0x00;
-			apdu[4] = 0x08;
-			apdu[5] = data[0];
-			apdu[6] = data[1];
-			apdu[7] = data[2];
-			apdu[8] = data[3];
-			apdu[9] = data[4];
-			apdu[10] = data[5];
-			apdu[11] = data[6];
-			apdu[12] = data[7];
+//			ndataarray[0x22] = 0x1a;
+//			ndataarray[0x23] = 0x07;
 			
-			try{
+			ndataarray[0x24] = 0x00;
+			ndataarray[0x25] = 0x00;
+
+			// 用象素/米表示的水平分辨率
+			ndataarray[0x26] = 0x00;
+			ndataarray[0x27] = 0x00;
+			ndataarray[0x28] = 0x00;
+			ndataarray[0x29] = 0x00;
+
+			// 用象素/米表示的垂直分辨率
+			ndataarray[0x2A] = 0x00;
+			ndataarray[0x2B] = 0x00;
+			ndataarray[0x2C] = 0x00;
+			ndataarray[0x2D] = 0x00;
+
+			// 位图使用的颜色数
+			ndataarray[0x2E] = 0x00;
+			ndataarray[0x2F] = 0x00;
+			ndataarray[0x30] = 0x00;
+			ndataarray[0x31] = 0x00;
+
+			// 指定重要的颜色数
+			ndataarray[0x32] = 0x00;
+			ndataarray[0x33] = 0x00;
+			ndataarray[0x34] = 0x00;
+			ndataarray[0x35] = 0x00;
+
+			// 调色板 (黑色)
+			ndataarray[0x36] = 0x00;
+			ndataarray[0x37] = 0x00;
+			ndataarray[0x38] = 0x00;
+			ndataarray[0x39] = 0x00;
+
+			// 调色板 (底色)
+			ndataarray[0x3A] = 0xFF;
+			ndataarray[0x3B] = 0xFF;
+			ndataarray[0x3C] = 0xFF;
+			ndataarray[0x3D] = 0x00;
+			
+			
+			int xstart = 0;
+			switch(length){
+			case 15:
+			case 16:
+				xstart = 0;
+				break;
 				
-				byte[] response = isodep.transceive(apdu);
-				strSW = bytesToHexString(response, response.length - 2, 2);
+			case 13:
+			case 14:
+				xstart = 12;
+				break;
 				
-				if(strSW.equals("9000")){
-					bret = true;
-					
-				}
-				return bret;
-			}catch(Exception e){
-				e.printStackTrace();
-				bret = false;
-				return bret;
+			case 11:
+			case 12:
+				xstart = 24;
+				break;
+				
+			case 9:
+			case 10:
+				xstart = 36;
+				break;
+			
+			case 7:
+			case 8:
+				xstart = 48;
+				break;
+				
+			case 5:
+			case 6:
+				xstart = 60;
+				break;
+			
+			case 3:
+			case 4:
+				xstart = 72;
+				break;	
+				
+			case 1:
+			case 2:
+				xstart = 84;
+				break;		
+				
+			default:
+				break;
+				
+				
+			}
+			int ystart = 0;
+			
+			for(int i = 0; i < length; i ++){
+				int num = ndata[i] & 0x0f;
+				display7Seg(xstart, ystart, NUM09[num], ndataarray);
+				xstart += 12;
 			}
 			
+			return ndataarray;
 		}
 		
-		public boolean getReadyPublicKey(){
-			byte[] apdu = new byte[5];
-			apdu[0] = (byte) 0x80;
-			apdu[1] = (byte) 0xbf;
-			apdu[2] = 0x04;
-			apdu[3] = 0x02;
-			apdu[4] = (byte) 0x80;
-			boolean bret = false;
-			try{
-				byte[] response = isodep.transceive(apdu);
-				strSW = bytesToHexString(response, response.length - 2, 2);
+		public byte[] getWholeImage(int[] src, byte[] dst, int index){
+			byte[] tmp = new byte[470];
+			for(int i = 0; i < 470; i ++)
+				tmp[i] = (byte)src[i];
+			System.arraycopy(tmp, 0, dst, index * 470, 470);
+			return dst;
+		}
+		
+		private void display7Seg (int nx, int ny, final int[] staticbuf, int[] buf)
+		{
+			int		z = 0;
+			int[][] p = new int[6][];
+			for(int i = 0; i < 6; i ++)
+				p[i] = new int[2];
+			Random	rand = new Random();
 			
-				if(strSW.equals("9000")){
-					bret = true;
-				}
-				return bret;
-			}catch(Exception e){
-				e.printStackTrace();
-				bret = false;
-				return bret;
+			
+			
+			int x1, y1, x2 = 0, y2 = 0;
+
+			for ( z = 0; z < 6; z++ )
+			{
+				int random = rand.nextInt(3);
+				p[z][0] = ORG[z][0] + random;
+				random = rand.nextInt(3);
+				p[z][1] = ORG[z][1] + random;
 			}
-		}
-		
-		public boolean readPublicKey(int count){
-			String readkeysw = "";
-			byte[] apdu = new byte[5];
-			apdu[0] = (byte) 0x00;
-			apdu[1] = (byte) 0xc0;
-			apdu[2] = 0x00;
-			apdu[3] = 0x00;
-			apdu[4] = (byte) 0x10;
-			boolean bret = false;
-			try{
-				byte[] response = isodep.transceive(apdu);
-				strSW = bytesToHexString(response, response.length - 2, 2); 
-				if(7 == count){
-					readkeysw = "9000";
-				}
+			
+			x1 = p[staticbuf[1] - 1][0];
+			y1 = p[staticbuf[1] - 1][1];
+			for ( z = 2; z <= staticbuf[0]; z++ )
+			{
+				x2 = p[staticbuf[z] - 1][0];
+				y2 = p[staticbuf[z] - 1][1];
+//				if((ny + y2) < 0 ){
+//					Log.v("zdmatrix", "显示7段错误，输入的n2 = " + ny + "，输入的y2 = " + y2);
+//				}
+				drawLine (nx + x1, ny + y1, nx + x2, ny + y2, 0, buf);
+	/*
+				// 将边线加宽
+				if ( x1 < 7 && x2 < 7 )
+					drawLine ( nx + x1 - 1, ny + y1, nx + x2 - 1, ny + y2, 0, buf );
+				else if ( x1 >= 7 && x2 >= 7 )
+					drawLine ( nx + x1 + 1, ny + y1, nx + x2 + 1, ny + y2, 0, buf );
+				else if ( y1 < 7 && y2 < 7 )
+					drawLine ( nx + x1, ny + y1 - 1, nx + x2, ny + y2 - 1, 0, buf );
 				else
-					readkeysw = "61" + Integer.toHexString(128 - (count + 1) * Global.FILELENGTHONETIME);
-				if(strSW.equals(readkeysw)){
-					strRSAPubKey[count] = DataTypeTrans.bytesArrayToHexString(response, 0, response.length - 2);
-//					retcode.strRetInfo = "第" + (count + 1) + " 次取公钥成功";
-					
-//				else{
-//					retcode.strRetInfo = "第" + (count + 1) + " 次取公钥失败";
-//					errinfo[index] = retcode.strRetInfo;
-//					index ++;
-//					break;
+					drawLine ( nx + x1, ny + y1 + 1, nx + x2, ny + y2 + 1, 0, buf );
+	*/
+				// 交换坐标
+				x1 = x2;
+				y1 = y2;
+				x2 = 0;
+				y2 = 0;
+			}
+
+			
+		}
+		
+		private void drawLine(int x0, int y0, int x1, int y1, int color, int[] buf){
+			boolean steep = false;
+			int deltax;
+			int deltay;
+			int error;
+			int ystep;
+			int x;
+			int y;
+			steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+			if ( steep )
+			{
+				int tmp = 0;
+				tmp = x0;
+				x0 = y0;
+				y0 = tmp;
 				
-				bret = true;
-				}
-				else{
-					bret = false;
-				}
-				return bret;
-			}catch(Exception e){
-				e.printStackTrace();
-				bret = false;
-				return bret;
+				tmp = x1;
+				x1 = y1;
+				y1 = tmp;
+//				swap ( x0, y0 );
+//				swap ( x1, y1 );
 			}
-		}
-		
-		
-		
-		
-		//字符序列转换为16进制字符串
-		private String bytesToHexString(byte[] src, int startindex, int length) {
-			StringBuilder stringBuilder = new StringBuilder("");
-			if (src == null || src.length <= 0) {
-				return null;
+
+			if ( x0 > x1 )
+			{
+				int tmp = x0;
+				x0 = x1;
+				x1 = tmp;
+				
+				tmp = y0;
+				y0 = y1;
+				y1 = tmp;
+//				swap ( x0, x1 );
+//				swap ( y0, y1 );
 			}
-			char[] buffer = new char[2];
-			for (int i = startindex; i < startindex + length; i++) {
-				buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
-				buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
-//				System.out.println(buffer);
-				stringBuilder.append(buffer);
-			}
-			return stringBuilder.toString();
-		}
-		
-		public void updateSelectFileData(int offsetlow, int offsethigh, String data, int length){
-			String stroffsetlow = "";
-			String stroffsethigh = "";
-			String apducmd = "";
-			
-			int len = data.length();
-			int index = 0;
-			if(offsetlow < 16)
-				stroffsetlow = "0" + Integer.toString(offsetlow, 16);
+
+			deltax = x1 - x0;
+
+			deltay = Math.abs( y1 - y0 );
+
+			error = deltax / 2;
+
+			y = y0;
+
+			if ( y0 < y1 )
+				ystep = 1;
 			else
-				stroffsetlow = Integer.toString(offsetlow, 16);
-			
-			if(offsethigh < 16)
-				stroffsethigh = "0" + Integer.toString(offsethigh, 16);
-			else
-				stroffsethigh = Integer.toString(offsethigh, 16);
-			
-			apducmd = "00d6" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
-			
-			if(len < (length * 2)){
-				while(index < (length * 2 - len)){
-					data = "0" + data;
-					index ++;
-				}
-			}
-			
-			String str = apducmd + data;
-			byte[]	apdudisplayoncard = DataTypeTrans.stringHexToByteArray(str);
-			try{
-//				isodep.connect();
-				byte[] sw = isodep.transceive(apdudisplayoncard);
-				strSW = bytesToHexString(sw, sw.length - 2, 2);
-//				isodep.close();
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-		}	
-	
-	public boolean selectFile(String addr){
-		boolean bret = false;
-		String apducmd = "00a4000002";
-		
+				ystep = -1;
 
-		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + addr);
-		try{
-//			isodep.connect();
-			byte[] ret = isodep.transceive(apdu);
-//			isodep.close();
-			strSW = bytesToHexString(ret, ret.length - 2, 2);
-			if(strSW.equals("9000")){
-				bret = true;
-			}
-			return bret;
-		}catch(Exception e){
-			e.printStackTrace();
-			bret = false;
-			return bret;
-		}
-		
-	}
-	
-	public boolean readSelectFileData(int offsetlow, int offsethigh, int length){
-		boolean bret = false;
-		String stroffsetlow = "";
-		String stroffsethigh = "";
-		String apducmd = "";
-		
-		if(offsetlow < 16)
-			stroffsetlow = "0" + Integer.toString(offsetlow, 16);
-		else
-			stroffsetlow = Integer.toString(offsetlow, 16);
-		
-		if(offsethigh < 16)
-			stroffsethigh = "0" + Integer.toString(offsethigh, 16);
-		else
-			stroffsethigh = Integer.toString(offsethigh, 16);
-		
-		apducmd = "00b0" + stroffsethigh + stroffsetlow + "0" + Integer.toString(length, 16);
+			for ( x = x0; x <= x1; x ++ )
+			{
 
-		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
-		try{
-//			isodep.connect();
-			byte[] ret = isodep.transceive(apdu);
-//			isodep.close();
-			strSW = bytesToHexString(ret, ret.length - 2, 2);
-			
-			if(strSW.equals("9000")){
-				Global.nBanlanceCash = DataTypeTrans.byteArray2Int(ret, 0, 4);
-				bret = true;
-			}
-			return bret;
-		}catch(Exception e){
-			bret = false;
-			e.printStackTrace();
-			return bret;
-		}
-	}
-	
-	public boolean getAuthCode(){
-		boolean bret = false;
-		String apducmd = "80bf080000";
-		
-
-		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
-		try{
-
-			byte[] ret = isodep.transceive(apdu);
-			strSW = bytesToHexString(ret, ret.length - 2, 2);
-			if(strSW.equals("9000")){
-				apducmd = "00c0000006";
-				apdu = DataTypeTrans.stringHexToByteArray(apducmd);
-				try{
-					ret = isodep.transceive(apdu);
-					strSW = bytesToHexString(ret, ret.length - 2, 2);
+				if ( steep )
+					setPixel ( y, x, color, buf);
 					
-					if(strSW.equals("9000")){
-						for(int i = 0; i < 6; i ++){
-							authcode[i] = ret[i];
-						}
-						bret = true;
-					}
-				}catch(Exception e){
-					e.printStackTrace();
-					bret = false;
+				else{
+					
+//					if(y < 0)
+//						Log.v("zdmatrix", "输入的y像素错误，为：" + y);
+					setPixel ( x, y, color, buf);
 				}
-				bret = true;
-			}
-			return bret;
-		}catch(Exception e){
-			e.printStackTrace();
-			bret = false;
-			return bret;
-		}
-		
-	}
-	
-	public boolean disNumOnCard(String authcode){
-//		String apducmd = "80bf01000" + Integer.toHexString(authcode.length());
-		boolean bret = false;
-		String apducmd = "80bf010006";
-//		byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd + authcode);
-		byte[] apdu = new byte[11];
-		byte[] apdu1 = DataTypeTrans.stringHexToByteArray(apducmd);
-		byte[] apdu2 = DataTypeTrans.stringDecToByteArray(authcode);
-		System.arraycopy(apdu1, 0, apdu, 0, apdu1.length);
-		System.arraycopy(apdu2, 0, apdu, apdu1.length, apdu2.length);
-		try{
+				error = error - deltay;
 
-			isodep.setTimeout(1000);
-			byte[] ret = isodep.transceive(apdu);
-			strSW = bytesToHexString(ret, ret.length - 2, 2);
-			
-			if(strSW.equals("9000")){
-				bret = true;
+				if ( error < 0 )
+				{
+					y = y + ystep;
+					error = error + deltax;
+				}
 			}
-			return bret;
-		}catch(Exception e){
-			e.printStackTrace();
-			bret = false;
-			return bret;
 		}
-		
-		
-	}
+
+		private void setPixel(int x, int y, int color, int[] buf){
+			int gx = 0x3E + ((16 - y) * 24) + (x / 8);
+			int gPixelMask = (0x80 >> (x % 8));
+			buf[gx] &= ~gPixelMask;
+		}	
 }

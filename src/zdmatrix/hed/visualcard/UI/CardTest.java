@@ -1,6 +1,7 @@
 package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
+import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
 import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 import android.app.Activity;
@@ -62,7 +63,7 @@ public class CardTest extends Activity{
 	Button 				btnPowerDown;
 	Button 				btnWriteData;
 	
-	IsoDep				isodep;
+	IsoDep				isodep = null;
 	NfcAdapter			nfcAdapter;
 	PendingIntent		pendingIntent;
 	Tag					tagFromIntent;
@@ -72,10 +73,6 @@ public class CardTest extends Activity{
 	IntentFilter[]		intentFilter;
 	
 	Handler				handler = null;
-	
-	Global globalval = new Global();
-	Global.ReturnVal retcode = globalval.new ReturnVal();
-	
 	
 	
 	@Override
@@ -134,31 +131,16 @@ public class CardTest extends Activity{
 	
 	@Override
 	public void onNewIntent(Intent intent){
-		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
-			bNFCConnected = true;
-			tstDisInfo = Toast.makeText(getApplicationContext(), "检测到NFC Tag", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
-		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-		isodep = IsoDep.get(tagFromIntent);
-		try{
-			isodep.connect();
-		}catch(Exception e){
-			e.printStackTrace();
-			tstDisInfo = Toast.makeText(getApplicationContext(), "isodep.connect失败", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
+		isodep = NFCCommunication.nfcConnectInit(intent, getApplicationContext());
 	}
 	
 	class ClickEvent implements View.OnClickListener {
 
 		public void onClick(View v) {
 			if (v == btnRead8ByteRandomData || v == btnWriteData){
-				if(!bNFCConnected){
-					new NFCDisconnectedThread().start();
-				}else{
+				if(isodep == null){
+					NFCCommunication.nfcConnectFailed(getApplicationContext());
+				}else {
 					if(v == btnRead8ByteRandomData){
 						new GetRandomDataThread().start();
 					}
@@ -182,16 +164,6 @@ public class CardTest extends Activity{
 		}
 	}
 	
-	class NFCDisconnectedThread extends Thread{
-		@Override
-		public void run(){
-			strSW = "";
-			strData = "";
-			strOPStatus = "请将卡靠近手机...";
-			handler.post(runnableUi);
-		}
-	}
-	
 	class GetRandomDataThread extends Thread{
 		@Override
 		public void run(){
@@ -202,7 +174,13 @@ public class CardTest extends Activity{
 				strOPStatus = "第" + nRandomTimes + "次读随机数成功";
 			}else{
 				strSW = null;
-				strOPStatus = "第" + nRandomTimes + "次读随机数失败";
+				strData = null;
+				
+				if(!isodep.isConnected()){
+					strOPStatus = "NFC连接失败";
+				}else{
+					strOPStatus = "第" + nRandomTimes + "次读随机数失败";
+				}
 			}
 			
 			handler.post(runnableUi);
@@ -212,37 +190,37 @@ public class CardTest extends Activity{
 	class WriteDataThread extends Thread{
 		@Override
 		public void run(){
+			nNum ++;
+			strData = null;
 			String code = "16" + Integer.toString(nNum % 10, 16);
 			if(FunctionMode.disNumOnCard(code, isodep)){
 				strSW = "0x9000";
 				strOPStatus = "第" + nNum + "次写数据成功";
 			}else{
 				strSW = null;
-				strOPStatus = "第" + nNum + "次写数据失败";
+				if(!isodep.isConnected()){
+					strOPStatus = "NFC连接失败";
+				}else{
+					strOPStatus = "第" + nNum + "次写数据失败";
+				}
 			}
 			
 			handler.post(runnableUi);
 		}
 	}
 	
-		
-		
-		Runnable runnableUi = new Runnable(){
-			@Override
-			public void run(){
+	Runnable runnableUi = new Runnable(){
+		@Override
+		public void run(){
 
-				bRead8ByteRandomData = false;
-				bWriteData = false;
+			bRead8ByteRandomData = false;
+			bWriteData = false;
 				
-				
-				
-				etOPStatus.setText(strOPStatus);
-				etReturnSW.setText(strSW);
-				etReturnData.setText(strData);
-			
-				
-			}
-		};
+			etOPStatus.setText(strOPStatus);
+			etReturnSW.setText(strSW);
+			etReturnData.setText(strData);
+		}
+	};
 				
 		
 }

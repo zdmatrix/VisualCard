@@ -5,7 +5,9 @@ package zdmatrix.hed.visualcard.UI;
 import java.lang.reflect.Field;
 
 import zdmatrix.hed.visualcard.R;
+import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
+import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 
 
 
@@ -74,7 +76,7 @@ public class OTP extends Activity{
 	IntentFilter		tech;
 	IntentFilter		tag;
 	IntentFilter[]		intentfilter;
-	IsoDep				isodep;
+	IsoDep				isodep = null;
 	
 	
 	String[][]			strTechLists;
@@ -83,8 +85,6 @@ public class OTP extends Activity{
 	EditText			etOTPAnswer;
 	EditText			etOTPChallenge;
 	
-	Global globalval = new Global();
-	Global.ReturnVal retcode = globalval.new ReturnVal();
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,40 +148,31 @@ public class OTP extends Activity{
 	
 	@Override
 	public void onNewIntent(Intent intent){
-		if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
-			bNFCConnected = true;
-			tstDisInfo = Toast.makeText(getApplicationContext(), "检测到NFC Tag", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
-		tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-		isodep = IsoDep.get(tagFromIntent);
-		try{
-			isodep.connect();
-		}catch(Exception e){
-			e.printStackTrace();
-			tstDisInfo = Toast.makeText(getApplicationContext(), "isodep.connect失败", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
+		isodep = NFCCommunication.nfcConnectInit(intent, getApplicationContext());
 	}
 	
 	class ClickEvent implements View.OnClickListener {
 
 		public void onClick(View v) {
-			if (v == btnReturnMain) {
-				/* 新建一个Intent对象 */
-				Intent intent = new Intent();
-				/* 指定intent要启动的类 */
-				intent.setClass(OTP.this, MainActivity.class);
-				/* 启动一个新的Activity */
-				startActivity(intent);
-				/* 关闭当前的Activity */
-				OTP.this.finish();
-			}
+			if(isodep == null){
+				NFCCommunication.nfcConnectFailed(getApplicationContext());
+			}else if(!isodep.isConnected()){
+				NFCCommunication.nfcConnectFailed(getApplicationContext());
+			}else{
+				if (v == btnReturnMain) {
+					/* 新建一个Intent对象 */
+					Intent intent = new Intent();
+					/* 指定intent要启动的类 */
+					intent.setClass(OTP.this, MainActivity.class);
+					/* 启动一个新的Activity */
+					startActivity(intent);
+					/* 关闭当前的Activity */
+					OTP.this.finish();
+				}
 			
-			if(v == btnGenerateChallenge){
-				new OTPThread().start();
+				if(v == btnGenerateChallenge){
+					new OTPThread().start();
+				}
 			}
 		}
 	}
@@ -189,10 +180,7 @@ public class OTP extends Activity{
 	public class OTPThread extends Thread{
 		@Override
 		public void run(){
-					if(!bNFCConnected){
-						handler.post(runnableDisDisconnect);
-					}
-					else{
+					
 						
 //						waitCardButtonPushed();
 						
@@ -204,11 +192,11 @@ public class OTP extends Activity{
 	                
 	                handler.post(runnableDialog);
 					
-	                disNumOnCard(strRandom);
+	                FunctionMode.disNumOnCard(strRandom, isodep);
 	                
 	                strRandom = "";
 	                
-	                sendOTPCmdToCard();
+	                FunctionMode.sendOTPCmdToCard(isodep);
 	                /*
 	                try{
 	                	Thread.sleep(500);
@@ -217,21 +205,13 @@ public class OTP extends Activity{
 	                }
 	                */
 	                handler.post(runnableInputAnswer);
-					}
+					
 	                
 		}
 	                	
 	                
 		}
 	
-	Runnable runnableDisDisconnect = new Runnable(){
-		@Override
-		public void run(){
-			tstDisInfo = Toast.makeText(getApplicationContext(), "NFC未检测到，请重新进行NFC连接", Toast.LENGTH_LONG);
-			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
-			tstDisInfo.show();
-		}
-	};
 	
 	Runnable runnableInputAnswer = new Runnable(){
 		@Override
@@ -490,93 +470,9 @@ public class OTP extends Activity{
 
 		}
 
-		public boolean disNumOnCard(String authcode){
-
-			boolean bret = false;
-			String apducmd = "80bf010006";
-			byte[] apdu = new byte[11];
-			byte[] apdu1 = DataTypeTrans.stringHexToByteArray(apducmd);
-			byte[] apdu2 = DataTypeTrans.stringDecToByteArray(authcode);
-			System.arraycopy(apdu1, 0, apdu, 0, apdu1.length);
-			System.arraycopy(apdu2, 0, apdu, apdu1.length, apdu2.length);
-			try{
-				if(!isodep.isConnected()){
-					isodep.connect();
-				}
-
-//				isodep.setTimeout(1000);
-
-				byte[] ret = isodep.transceive(apdu);
-				strSW = bytesToHexString(ret, ret.length - 2, 2);
-				
-				if(strSW.equals("9000")){
-					bret = true;
-					
-				}
-				return bret;
-			}catch(Exception e){
-				e.printStackTrace();
-				bret = false;
-				return bret;
-			}
-		}
+		
 			
-			//字符序列转换为16进制字符串
-			private String bytesToHexString(byte[] src, int startindex, int length) {
-				StringBuilder stringBuilder = new StringBuilder("");
-				if (src == null || src.length <= 0) {
-					return null;
-				}
-				char[] buffer = new char[2];
-				for (int i = startindex; i < startindex + length; i++) {
-					buffer[0] = Character.forDigit((src[i] >>> 4) & 0x0F, 16);
-					buffer[1] = Character.forDigit(src[i] & 0x0F, 16);
-//					System.out.println(buffer);
-					stringBuilder.append(buffer);
-				}
-				return stringBuilder.toString();
-			}
 			
-			public void sendOTPCmdToCard(){
-				boolean bret = false;
-				String apducmd = "80bf050000";
-				byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
-				try{
-					if(!isodep.isConnected()){
-						isodep.connect();
-					}
-					isodep.setTimeout(30000);
-					byte[] ret = isodep.transceive(apdu);
-					strSW = DataTypeTrans.bytesArrayToHexString(ret, ret.length - 2, 2);
-					if(strSW.equals("9000")){
-						bret = true;
-					}
-				}catch(Exception e){
-					e.printStackTrace();
-					
-				}
-			}
 			
-			public boolean waitCardButtonPushed(){
-				boolean bret = false;
-				String apducmd = "80bf060000";
-				byte[] apdu = DataTypeTrans.stringHexToByteArray(apducmd);
-				try{
-					if(!isodep.isConnected()){
-						isodep.connect();
-					}
-					
-					byte[] ret = isodep.transceive(apdu);
-					strSW = bytesToHexString(ret, ret.length - 2, 2);
-					
-					if(strSW.equals("9000")){
-						bret = true;
-					}
-					return bret;
-				}catch(Exception e){
-					e.printStackTrace();
-					bret = false;
-					return bret;
-				}
-			}
+			
 }

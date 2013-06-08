@@ -98,4 +98,19 @@ public class DataTypeTrans {
 		}
 		return stringBuilder.toString();
 	}
+	
+	/*10进制的字符串转化为int型数组*/
+	public static int[] stringDecToIntArray(String s){
+		char ch[] = s.toCharArray();
+		int length = ch.length;
+		int dst[] = new int[length];
+		String str[] = new String[length];
+		for(int i = 0; i < length; i ++){
+			str[i] = String.valueOf(ch, i, 1);
+			str[i] = "3" + str[i];
+			dst[i] = Integer.parseInt(str[i], 16);
+			
+		}
+		return dst;
+	}
 }
