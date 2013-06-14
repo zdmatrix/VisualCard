@@ -3,6 +3,7 @@ package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
+import zdmatrix.hed.visualcard.UI.NFCObject;
 import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -80,6 +81,8 @@ public class ElectricMoney extends Activity{
 	Toast				tstDisInfo;
 	Handler				handler = null;
 	
+	NFCObject 			nfcobject;
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -148,6 +151,11 @@ public class ElectricMoney extends Activity{
         strTechLists = new String[][]{new String[]{IsoDep.class.getName(),
         		MifareClassic.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
         
+        nfcobject = (NFCObject)getApplicationContext();
+        if(isodep == null){
+        	isodep = nfcobject.getNFCObject();
+        }
+        	
     }
 	
 	@Override
@@ -165,6 +173,7 @@ public class ElectricMoney extends Activity{
 	@Override
 	public void onNewIntent(Intent intent){
 		isodep = NFCCommunication.nfcConnectInit(intent, getApplicationContext());
+		nfcobject.setNFCObject(isodep);
 	}
 	
 	class ClickEvent implements View.OnClickListener {

@@ -6,6 +6,7 @@ import java.util.Random;
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.Alg.EncryptIn3DES;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
+import zdmatrix.hed.visualcard.UI.NFCObject;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
 import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 import android.app.Activity;
@@ -87,6 +88,8 @@ public class NewUKey extends Activity{
 	IntentFilter[]		intentfilter;
 	IsoDep				isodep = null;
 	
+	
+	
 	int					nImageSrcCount[] = new int[480];
 	int					nImageDstCount[] = new int[480];
 	int					nImageRechargeData[] = new int[480];
@@ -164,6 +167,8 @@ public class NewUKey extends Activity{
 			{0, 12},
 			{6, 12},
 	};
+	
+	NFCObject nfcobject;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -249,6 +254,10 @@ public class NewUKey extends Activity{
         strTechLists = new String[][]{new String[]{IsoDep.class.getName(),
         		MifareClassic.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
         
+        nfcobject = (NFCObject)getApplicationContext();
+        if(isodep == null)
+        	isodep = nfcobject.getNFCObject();
+        
 	}       
 	
 	@Override
@@ -266,6 +275,7 @@ public class NewUKey extends Activity{
 	@Override
 	public void onNewIntent(Intent intent){
 		isodep = NFCCommunication.nfcConnectInit(intent, getApplicationContext());
+		nfcobject.setNFCObject(isodep);
 	}
 	
 	class ClickEvent implements View.OnClickListener { 

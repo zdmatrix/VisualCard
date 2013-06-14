@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 
 import zdmatrix.hed.visualcard.R;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
+import zdmatrix.hed.visualcard.UI.NFCObject;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
 import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
 
@@ -85,6 +86,7 @@ public class OTP extends Activity{
 	EditText			etOTPAnswer;
 	EditText			etOTPChallenge;
 	
+	NFCObject 			nfcobject;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -128,8 +130,11 @@ public class OTP extends Activity{
         
         strTechLists = new String[][]{new String[]{IsoDep.class.getName(),
         		MifareClassic.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
-    
         
+        nfcobject = (NFCObject)getApplicationContext();
+        
+        if(isodep == null)
+        	isodep = nfcobject.getNFCObject();
 	 
 		
     }
@@ -149,6 +154,7 @@ public class OTP extends Activity{
 	@Override
 	public void onNewIntent(Intent intent){
 		isodep = NFCCommunication.nfcConnectInit(intent, getApplicationContext());
+		nfcobject.setNFCObject(isodep);
 	}
 	
 	class ClickEvent implements View.OnClickListener {
