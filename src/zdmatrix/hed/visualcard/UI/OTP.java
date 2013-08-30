@@ -5,6 +5,7 @@ package zdmatrix.hed.visualcard.UI;
 import java.lang.reflect.Field;
 
 import zdmatrix.hed.visualcard.R;
+//import jbd.visualcard.R;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import zdmatrix.hed.visualcard.UI.NFCObject;
 import zdmatrix.hed.visualcard.DataTypeTrans.DataTypeTrans;
@@ -57,7 +58,9 @@ public class OTP extends Activity{
 	
 	int[] 				nRandom = new int[6];
 	byte[] 				bRandom = new byte[6];
+	byte[]				authcode = new byte[6];
 	String 				strRandom = "";
+	String 				strAnswerCode = "";
 	
 	Button				btnReturnMain;
 	Button				btnGenerateChallenge;
@@ -105,7 +108,8 @@ public class OTP extends Activity{
 		btnReturnMain.setOnClickListener(new ClickEvent());
         
 		etOTPChallenge = (EditText)findViewById(R.id.etOTPChallenge);
-		etOTPAnswer = (EditText)findViewById(R.id.etOTPAnswer);
+//		etOTPAnswer = (EditText)findViewById(R.id.etOTPAnswer);
+		
 		
 		handler = new Handler();
         
@@ -199,19 +203,34 @@ public class OTP extends Activity{
 	                bRandom = DataTypeTrans.intArray2ByteArray(nRandom);
 	                
 	                handler.post(runnableDialog);
-					
+	                try{
+						Thread.sleep(500);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
 	                FunctionMode.disNumOnCard(strRandom, isodep);
 	                
 	                strRandom = "";
 	                
-	                FunctionMode.sendOTPCmdToCard(isodep);
-	                /*
-	                try{
-	                	Thread.sleep(500);
-	                }catch(Exception e){
-	                	e.printStackTrace();
+//	                FunctionMode.sendOTPCmdToCard(isodep);
+	                FunctionMode.getAuthCode(isodep, authcode);
+	                handler.post(runnableGuid);
+	                
+
+	                if(FunctionMode.waitCardButtonPushed(isodep)){
+	                	try{
+							Thread.sleep(1000);
+						}catch(Exception e){
+							e.printStackTrace();
+						}
+	                	for(int i = 0; i < authcode.length; i ++){
+	                		strAnswerCode += String.valueOf((int)(authcode[i] - 0x30));
+	                	}
+//	                	strAnswerCode = DataTypeTrans.bytesArrayToHexString(authcode, 0, authcode.length);
+	                	FunctionMode.disNumOnCard(strAnswerCode, isodep);
+//	                	handler.post(runnableDisAnswerCode);
+	                	
 	                }
-	                */
 	                handler.post(runnableInputAnswer);
 					
 	                
@@ -220,6 +239,22 @@ public class OTP extends Activity{
 	                
 		}
 	
+	Runnable runnableDisAnswerCode = new Runnable(){
+		@Override
+		public void run(){
+			etOTPAnswer.setText(strAnswerCode);
+		}
+	};
+	
+	Runnable runnableGuid = new Runnable(){
+		@Override
+		public void run(){
+			tstDisInfo = Toast.makeText(getApplicationContext(), "请确认生成的挑战码和下发到卡上的挑战码一致！\r\n" +
+            		"若一致，请按下卡上按钮生成应答码！\r\n", Toast.LENGTH_LONG);
+        	tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+            tstDisInfo.show();
+		}
+	};
 	
 	Runnable runnableInputAnswer = new Runnable(){
 		@Override
@@ -233,15 +268,16 @@ public class OTP extends Activity{
 					//得到自定义对话框
 	                final View DialogView = factory.inflate(R.layout.dynamicorderdiglog, null);
 					
-	                
-	                
+	                etOTPAnswer = (EditText)DialogView.findViewById(R.id.etOTPAnswer);
+	                etOTPAnswer.setText(strAnswerCode);
 	                //创建对话框
 	                
 	               
 	                
 	                dlg = new AlertDialog.Builder(OTP.this)
-	                .setTitle("输入应答码")
-	                .setMessage("请输入应答码并按确定登录")
+	                .setTitle("确认应答码")
+	                .setMessage("请确认卡上显示的应答码和下面对话框中应答码是否一致\r\n" +
+	                		"若一致，请按“确定”按钮登录")
 	                
 	                .setView(DialogView)//设置自定义对话框的样式
 	                .setPositiveButton("确定", //设置"确定"按钮
@@ -259,11 +295,11 @@ public class OTP extends Activity{
 	                    	
 	                    	
 	                    	
-	                    	EditText etOTPAnswer = (EditText)DialogView.findViewById(R.id.etOTPAnswer);
+//	                    	EditText etOTPAnswer = (EditText)DialogView.findViewById(R.id.etOTPAnswer);
 	                    	
-	                    	String strOTPAnswer = etOTPAnswer.getText().toString();
-	                    	
-	                    	if(strOTPAnswer.length() == 6){
+//	                    	String strOTPAnswer = etOTPAnswer.getText().toString();
+//	                    	etOTPAnswer.setText(strAnswerCode);
+	                    	if(strAnswerCode.length() == 6){
 	                    		bVerify = true;
 	                    	}else{
 	                    		bVerify = false;

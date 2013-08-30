@@ -292,6 +292,7 @@ public class FunctionMode {
 	
 	public static void sendOTPCmdToCard(IsoDep isodep){
 		byte[] apdu = DataTypeTrans.stringHexToByteArray(APDUCmd.APDUSendOTPCmdToCard);
+		
 		try{
 			if(!isodep.isConnected()){
 				isodep.connect();
@@ -308,13 +309,14 @@ public class FunctionMode {
 		}
 	}
 	
-	public boolean waitCardButtonPushed(IsoDep isodep){
+	public static boolean waitCardButtonPushed(IsoDep isodep){
 		boolean bret = false;
 		byte[] apdu = DataTypeTrans.stringHexToByteArray(APDUCmd.APDUWaitCardButtonPushed);
 		try{
 			if(!isodep.isConnected()){
 				isodep.connect();
 			}
+			isodep.setTimeout(30000);
 			byte[] ret = isodep.transceive(apdu);
 			String sw = DataTypeTrans.bytesArrayToHexString(ret, ret.length - 2, 2);
 			if(sw.equals("9000")){

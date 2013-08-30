@@ -12,9 +12,9 @@
     <application
         
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/hedicon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" android:name=".UI.NFCObject">
+        android:theme="@style/AppTheme" android:name="zdmatrix.hed.visualcard.UI.NFCObject">
         <activity
             android:name="zdmatrix.hed.visualcard.UI.MainActivity"
             android:label="@string/app_name" android:screenOrientation="portrait">
@@ -24,7 +24,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".UI.OTP" android:screenOrientation="portrait"><intent-filter android:label="NFC NDEF">
+        <activity android:name="zdmatrix.hed.visualcard.UI.OTP" android:screenOrientation="portrait"><intent-filter android:label="NFC NDEF">
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
                 <data android:mimeType='text/plain'/>
             </intent-filter><intent-filter android:label="NFC TECH">
@@ -51,7 +51,7 @@
                 <action android:name="android.nfc.action.TAG_DISCOVERED"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter><meta-data android:name="android.nfc.action.TECH_DISCOVERED" android:resource="@xml/tech_list"/></activity>
-        <activity android:name=".UI.CardTest" android:screenOrientation="portrait">
+        <activity android:name="zdmatrix.hed.visualcard.UI.CardTest" android:screenOrientation="portrait">
             <intent-filter android:label="NFC NDEF">
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
                 <data android:mimeType='text/plain'/>

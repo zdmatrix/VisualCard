@@ -16,4 +16,7 @@ public class APDUCmd {
 	public static final String APDUGenerateRSAKey = "8046111200";
 	
 	
+
+//  80bf070000:等待按键，按键按下后显示一个随机数
+	
 }

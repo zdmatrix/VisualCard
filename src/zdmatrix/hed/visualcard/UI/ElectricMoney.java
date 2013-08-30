@@ -2,6 +2,7 @@ package zdmatrix.hed.visualcard.UI;
 
 
 import zdmatrix.hed.visualcard.R;
+//import jbd.visualcard.R;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import zdmatrix.hed.visualcard.UI.NFCObject;
 import zdmatrix.hed.visualcard.FunctionMode.FunctionMode;
@@ -215,7 +216,7 @@ public class ElectricMoney extends Activity{
 					handler.post(runnableRechargeWarningDialog);
 				}else{
 					nBanlanceCash += Integer.parseInt(strRechargeData, 10);
-					bRecharge = false;
+//					bRecharge = false;
 					handler.post(runnableConfirmDialog);
 					
 				}
@@ -224,7 +225,7 @@ public class ElectricMoney extends Activity{
 					handler.post(runnableConsumeWarningDialog);
 						
 				}else{
-					bConsume = false;
+//					bConsume = false;
 					nBanlanceCash -= Integer.parseInt(strConsumeData, 10);
 					handler.post(runnableConfirmDialog);
 				}
@@ -319,7 +320,8 @@ public class ElectricMoney extends Activity{
 		public void run(){
 			dlogConfirm = new AlertDialog.Builder(ElectricMoney.this)
 			.setTitle("确认交易")
-			.setMessage("确认交易？")
+			.setMessage("确认" + (bConsume? "消费" : "充值") + (bConsume? strConsumeData : strRechargeData) 
+					+ "元？\r\n余额显示在卡上......\r\n请按下可视卡上按钮确认交易！")
 			.setPositiveButton("确认", 
 			new DialogInterface.OnClickListener() {
 					
@@ -330,13 +332,25 @@ public class ElectricMoney extends Activity{
 					new Thread(){
 						public void run(){
 							if(FunctionMode.selectFile("00bf", isodep)){
-								String str = Integer.toString(nBanlanceCash, 16); 
-								FunctionMode.updateSelectFileData(str, isodep);
+								String str = Integer.toString(nBanlanceCash, 16);
+								String strDec = Integer.toString(nBanlanceCash, 10);
+								if(FunctionMode.waitCardButtonPushed(isodep)){
+									try{
+										Thread.sleep(1000);
+									}catch(Exception e){
+										e.printStackTrace();
+									}
+									FunctionMode.disNumOnCard(strDec, isodep);
+									FunctionMode.updateSelectFileData(str, isodep);
+								}
+								
 							}else{
 								if(!isodep.isConnected()){
 									NFCCommunication.nfcConnectFailed(getApplicationContext());
 								}
 							}
+							bConsume = false;
+							bRecharge = false;
 						}
 					}.start();
 				}

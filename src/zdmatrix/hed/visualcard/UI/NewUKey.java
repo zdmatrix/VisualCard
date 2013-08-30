@@ -4,6 +4,7 @@ package zdmatrix.hed.visualcard.UI;
 import java.util.Random;
 
 import zdmatrix.hed.visualcard.R;
+//import jbd.visualcard.R;
 import zdmatrix.hed.visualcard.Alg.EncryptIn3DES;
 import zdmatrix.hed.visualcard.DataCommunication.NFCCommunication;
 import zdmatrix.hed.visualcard.UI.NFCObject;

@@ -1,6 +1,7 @@
 package zdmatrix.hed.visualcard.UI;
 
 import zdmatrix.hed.visualcard.R;
+//import jbd.visualcard.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;

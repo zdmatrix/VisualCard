@@ -164,22 +164,23 @@ public final class R {
         public static final int activity_vertical_margin=0x7f060001;
     }
     public static final class drawable {
-        public static final int black=0x7f020000;
-        public static final int btncardtest=0x7f020001;
-        public static final int btnelectricmoney=0x7f020002;
-        public static final int btnnewukey=0x7f020003;
-        public static final int btnotp=0x7f020004;
-        public static final int btnpublic=0x7f020005;
-        public static final int cardtest=0x7f020006;
-        public static final int codeaple=0x7f020007;
-        public static final int elecmoney=0x7f020008;
-        public static final int head=0x7f020009;
-        public static final int ic_launcher=0x7f02000a;
-        public static final int launch=0x7f02000b;
-        public static final int lucency=0x7f02000c;
-        public static final int menupublic=0x7f02000d;
-        public static final int newukey=0x7f02000e;
-        public static final int otp=0x7f02000f;
+        public static final int androidicon=0x7f020000;
+        public static final int black=0x7f020001;
+        public static final int btncardtest=0x7f020002;
+        public static final int btnelectricmoney=0x7f020003;
+        public static final int btnnewukey=0x7f020004;
+        public static final int btnotp=0x7f020005;
+        public static final int btnpublic=0x7f020006;
+        public static final int cardtest=0x7f020007;
+        public static final int codeaple=0x7f020008;
+        public static final int elecmoney=0x7f020009;
+        public static final int head=0x7f02000a;
+        public static final int hedicon=0x7f02000b;
+        public static final int launch=0x7f02000c;
+        public static final int lucency=0x7f02000d;
+        public static final int menupublic=0x7f02000e;
+        public static final int newukey=0x7f02000f;
+        public static final int otp=0x7f020010;
     }
     public static final class id {
         public static final int NewUkeyStep1=0x7f0a0029;
@@ -193,14 +194,14 @@ public final class R {
         public static final int apdutestViewLabal=0x7f0a0009;
         public static final int apdutestViewStep1=0x7f0a000b;
         public static final int apdutestViewStep2=0x7f0a000c;
-        public static final int btnCardTest=0x7f0a0001;
+        public static final int btnCardTest=0x7f0a0000;
         public static final int btnConsume=0x7f0a0021;
-        public static final int btnElectricMoney=0x7f0a0004;
-        public static final int btnExit=0x7f0a0005;
+        public static final int btnElectricMoney=0x7f0a0003;
+        public static final int btnExit=0x7f0a0004;
         public static final int btnGenerateChallenge=0x7f0a0015;
         public static final int btnGenerateRSAKey=0x7f0a0034;
-        public static final int btnNewUKey=0x7f0a0003;
-        public static final int btnOTP=0x7f0a0002;
+        public static final int btnNewUKey=0x7f0a0002;
+        public static final int btnOTP=0x7f0a0001;
         public static final int btnRead8ByteRandomData=0x7f0a000d;
         public static final int btnReadBanlance=0x7f0a0022;
         public static final int btnRecharge=0x7f0a0020;
@@ -227,13 +228,13 @@ public final class R {
         public static final int etReturnData=0x7f0a0010;
         public static final int etReturnSW=0x7f0a0011;
         public static final int etSrcAccount=0x7f0a002a;
-        public static final int imageView1=0x7f0a0000;
+        public static final int imageView1=0x7f0a0006;
         public static final int imgLoadedImage=0x7f0a0016;
         public static final int imgvAuthCode=0x7f0a0033;
         public static final int imgvDstAccount=0x7f0a0026;
         public static final int imgvRechargeData=0x7f0a0025;
         public static final int imgvSrcAccount=0x7f0a0032;
-        public static final int mainViewLabal=0x7f0a0006;
+        public static final int mainViewLabal=0x7f0a0005;
         public static final int newukeyViewLabal=0x7f0a0038;
         public static final int textView2=0x7f0a0007;
         public static final int textView3=0x7f0a002c;
@@ -276,6 +277,7 @@ public final class R {
         public static final int GeneratePublicKey=0x7f070025;
         public static final int InputCardNum=0x7f070041;
         public static final int InputData=0x7f070024;
+        public static final int JBD=0x7f070042;
         public static final int Login=0x7f07001e;
         public static final int NewUKey=0x7f070003;
         public static final int NewUkeyReadMe=0x7f070029;
