@@ -166,21 +166,23 @@ public final class R {
     public static final class drawable {
         public static final int androidicon=0x7f020000;
         public static final int black=0x7f020001;
-        public static final int btncardtest=0x7f020002;
-        public static final int btnelectricmoney=0x7f020003;
-        public static final int btnnewukey=0x7f020004;
-        public static final int btnotp=0x7f020005;
-        public static final int btnpublic=0x7f020006;
-        public static final int cardtest=0x7f020007;
-        public static final int codeaple=0x7f020008;
-        public static final int elecmoney=0x7f020009;
-        public static final int head=0x7f02000a;
-        public static final int hedicon=0x7f02000b;
-        public static final int launch=0x7f02000c;
-        public static final int lucency=0x7f02000d;
-        public static final int menupublic=0x7f02000e;
-        public static final int newukey=0x7f02000f;
-        public static final int otp=0x7f020010;
+        public static final int bmp1=0x7f020002;
+        public static final int bmp2=0x7f020003;
+        public static final int btncardtest=0x7f020004;
+        public static final int btnelectricmoney=0x7f020005;
+        public static final int btnnewukey=0x7f020006;
+        public static final int btnotp=0x7f020007;
+        public static final int btnpublic=0x7f020008;
+        public static final int cardtest=0x7f020009;
+        public static final int codeaple=0x7f02000a;
+        public static final int elecmoney=0x7f02000b;
+        public static final int head=0x7f02000c;
+        public static final int hedicon=0x7f02000d;
+        public static final int launch=0x7f02000e;
+        public static final int lucency=0x7f02000f;
+        public static final int menupublic=0x7f020010;
+        public static final int newukey=0x7f020011;
+        public static final int otp=0x7f020012;
     }
     public static final class id {
         public static final int NewUkeyStep1=0x7f0a0029;
@@ -190,7 +192,7 @@ public final class R {
         public static final int TextView02=0x7f0a002f;
         public static final int TextView03=0x7f0a0030;
         public static final int TextView04=0x7f0a0031;
-        public static final int action_settings=0x7f0a0039;
+        public static final int action_settings=0x7f0a003a;
         public static final int apdutestViewLabal=0x7f0a0009;
         public static final int apdutestViewStep1=0x7f0a000b;
         public static final int apdutestViewStep2=0x7f0a000c;
@@ -241,6 +243,7 @@ public final class R {
         public static final int textView4=0x7f0a0036;
         public static final int textView5=0x7f0a002e;
         public static final int tvTagInfo=0x7f0a0012;
+        public static final int tvToast=0x7f0a0039;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -250,6 +253,7 @@ public final class R {
         public static final int mainelectricmoney=0x7f030004;
         public static final int mainnewukey=0x7f030005;
         public static final int newukeydialog=0x7f030006;
+        public static final int toast=0x7f030007;
     }
     public static final class menu {
         public static final int main=0x7f090000;
@@ -339,6 +343,8 @@ public final class R {
  All customizations that are NOT specific to a particular API-level can go here. 
          */
         public static final int AppTheme=0x7f080001;
+        public static final int TextAppearance=0x7f080002;
+        public static final int TextAppearance_Small=0x7f080003;
     }
     public static final class xml {
         public static final int tech_list=0x7f040000;

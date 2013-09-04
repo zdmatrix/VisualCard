@@ -47,6 +47,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -144,6 +145,8 @@ public class NewUKey extends Activity{
 	EncryptIn3DES 		encryptin3DES = new EncryptIn3DES();
 	Handler				handler = null;
 	
+	View 				toastRoot;
+	TextView 			tvToast;
 	public static final int DEFAULTSRCACCOUNT = 1234567890;
 	public static final int DEFAULTDSTACCOUNT = 1023456789;
 	
@@ -232,7 +235,10 @@ public class NewUKey extends Activity{
         res = getResources();
         
         handler = new Handler();
-  
+        
+        
+        
+        
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if(nfcAdapter == null){
         	tstDisInfo = Toast.makeText(getApplicationContext(), "该设备不支持NFC", Toast.LENGTH_LONG);
@@ -548,6 +554,7 @@ public class NewUKey extends Activity{
 			public void run(){
 				tstDisInfo = Toast.makeText(getApplicationContext(), "生成公钥失败", Toast.LENGTH_SHORT);
 				tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+				
 				tstDisInfo.show();
 			}
 			
@@ -572,7 +579,24 @@ public class NewUKey extends Activity{
 			}
 			
 		};
+		
+		Runnable disSucesseMsg = new Runnable(){
+			@Override
+			public void run(){
+				tstDisInfo = new Toast(getApplicationContext()); 
+				tstDisInfo = Toast.makeText(getApplicationContext(), "交易成功！", Toast.LENGTH_SHORT);
+				toastRoot = getLayoutInflater().inflate(R.layout.toast, null);
+				tvToast = (TextView)toastRoot.findViewById(R.id.tvToast);
+				tvToast.setText("交易成功！");
+				
+				tstDisInfo.setDuration(Toast.LENGTH_LONG); 
+				tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+				tstDisInfo.setView(toastRoot);
+				tstDisInfo.show();
+			}
 			
+		};
+		
 		Runnable runnableDisToast = new Runnable(){
 			@Override
 			public void run(){
@@ -607,6 +631,7 @@ public class NewUKey extends Activity{
 									String str = Integer.toString(nBanlanceCash, 16);
 									if(FunctionMode.selectFile("00bf", isodep)){
 										FunctionMode.updateSelectFileData(str, isodep);
+										handler.post(disSucesseMsg);
 									}
 									
 									sleep(2000);

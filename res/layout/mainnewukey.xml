@@ -260,4 +260,12 @@
         android:text="@string/returnmain"
         android:textColor="@color/Black" />
 
+    <TextView
+        android:id="@+id/tvToast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="125dp"
+        android:layout_y="314dp"
+        android:text="测试" />
+
 </AbsoluteLayout>

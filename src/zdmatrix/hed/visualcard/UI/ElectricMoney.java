@@ -81,6 +81,8 @@ public class ElectricMoney extends Activity{
 	
 	Toast				tstDisInfo;
 	Handler				handler = null;
+	View				toastRoot;
+	TextView			tvToast;
 	
 	NFCObject 			nfcobject;
 	
@@ -211,24 +213,35 @@ public class ElectricMoney extends Activity{
 		public void run() {
 				
 			if(bRecharge){
-					
-				if(1000 < Integer.parseInt(strRechargeData, 10)){
-					handler.post(runnableRechargeWarningDialog);
-				}else{
-					nBanlanceCash += Integer.parseInt(strRechargeData, 10);
-//					bRecharge = false;
-					handler.post(runnableConfirmDialog);
-					
+				if(FunctionMode.selectFile("00bf", isodep)){
+					if((nBanlanceCash = FunctionMode.readSelectFileData(isodep)) >= 0){
+						if(1000 < Integer.parseInt(strRechargeData, 10)){
+							handler.post(runnableRechargeWarningDialog);
+						}else{
+							nBanlanceCash += Integer.parseInt(strRechargeData, 10);
+//							bRecharge = false;
+							FunctionMode.disNumOnCard(strRechargeData, isodep);
+							handler.post(runnableConfirmDialog);
+							
+						}
+					}	
 				}
+				
 			}else if(bConsume){
-				if(Integer.parseInt(strConsumeData, 10) > nBanlanceCash){
-					handler.post(runnableConsumeWarningDialog);
-						
-				}else{
-//					bConsume = false;
-					nBanlanceCash -= Integer.parseInt(strConsumeData, 10);
-					handler.post(runnableConfirmDialog);
+				if(FunctionMode.selectFile("00bf", isodep)){
+					if((nBanlanceCash = FunctionMode.readSelectFileData(isodep)) >= 0){
+						if(Integer.parseInt(strConsumeData, 10) > nBanlanceCash){
+							handler.post(runnableConsumeWarningDialog);
+								
+						}else{
+//							bConsume = false;
+							nBanlanceCash -= Integer.parseInt(strConsumeData, 10);
+							FunctionMode.disNumOnCard(strConsumeData, isodep);
+							handler.post(runnableConfirmDialog);
+						}
+					}
 				}
+				
 			}else if(bReadBanlance){
 				bReadBanlance = false;
 					/*读卡中透明文件存储的余额值
@@ -341,6 +354,7 @@ public class ElectricMoney extends Activity{
 										e.printStackTrace();
 									}
 									FunctionMode.disNumOnCard(strDec, isodep);
+									handler.post(disSucesseMsg);
 									FunctionMode.updateSelectFileData(str, isodep);
 								}
 								
@@ -381,6 +395,23 @@ public class ElectricMoney extends Activity{
 				
 			dlogConfirm.show();
 		}
+	};
+	
+	Runnable disSucesseMsg = new Runnable(){
+		@Override
+		public void run(){
+			tstDisInfo = new Toast(getApplicationContext()); 
+			tstDisInfo = Toast.makeText(getApplicationContext(), "交易成功！", Toast.LENGTH_SHORT);
+			toastRoot = getLayoutInflater().inflate(R.layout.toast, null);
+			tvToast = (TextView)toastRoot.findViewById(R.id.tvToast);
+			tvToast.setText("交易成功！");
+			
+			tstDisInfo.setDuration(Toast.LENGTH_LONG); 
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.setView(toastRoot);
+			tstDisInfo.show();
+		}
+		
 	};
 		
 }

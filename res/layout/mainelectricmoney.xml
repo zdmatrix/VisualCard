@@ -25,6 +25,7 @@
         android:layout_y="177dp"
         android:ems="10"
         android:gravity="center"
+        android:inputType="numberDecimal"
         android:textColor="@color/Green"
         android:color="@color/Black" />
 
@@ -56,6 +57,7 @@
         android:layout_y="310dp"
         android:ems="10"
         android:gravity="center"
+        android:inputType="numberDecimal"
         android:textColor="@color/Red"
         android:color="@color/Black" />
 

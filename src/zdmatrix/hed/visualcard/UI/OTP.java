@@ -42,6 +42,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class OTP extends Activity{
@@ -66,6 +67,8 @@ public class OTP extends Activity{
 	Button				btnGenerateChallenge;
 	ImageView			imgLoadedImage;
 	Bitmap				bitmap;
+	Bitmap				bitmap1;
+	Bitmap				bitmap2;
 	Resources			res;
 	Handler				handler;
 	ProgressDialog 		m_Dialog;
@@ -90,7 +93,10 @@ public class OTP extends Activity{
 	EditText			etOTPChallenge;
 	
 	NFCObject 			nfcobject;
+	View				toastRoot;
+	TextView			tvToast;
 	
+	int					clicknum = 0;
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +106,8 @@ public class OTP extends Activity{
         res = getResources();
         imgLoadedImage = (ImageView)findViewById(R.id.imgLoadedImage);
         bitmap = BitmapFactory.decodeResource(res, R.drawable.codeaple);
+        bitmap1 = BitmapFactory.decodeResource(res, R.drawable.bmp1);
+        bitmap2 = BitmapFactory.decodeResource(res, R.drawable.bmp2);
         
         btnGenerateChallenge = (Button)findViewById(R.id.btnGenerateChallenge);
         btnGenerateChallenge.setOnClickListener(new ClickEvent());
@@ -195,7 +203,8 @@ public class OTP extends Activity{
 					
 						
 //						waitCardButtonPushed();
-						
+//					handler.post(runnableGone);
+			clicknum ++;
 					for(int i = 0; i < 6; i ++){
 	            		nRandom[i] = Integer.valueOf((int)(Math.random() * 10));
 	            		strRandom += (String.valueOf(nRandom[i]));
@@ -219,7 +228,7 @@ public class OTP extends Activity{
 
 	                if(FunctionMode.waitCardButtonPushed(isodep)){
 	                	try{
-							Thread.sleep(1000);
+							Thread.sleep(500);
 						}catch(Exception e){
 							e.printStackTrace();
 						}
@@ -270,6 +279,7 @@ public class OTP extends Activity{
 					
 	                etOTPAnswer = (EditText)DialogView.findViewById(R.id.etOTPAnswer);
 	                etOTPAnswer.setText(strAnswerCode);
+	                
 	                //创建对话框
 	                
 	               
@@ -304,6 +314,8 @@ public class OTP extends Activity{
 	                    	}else{
 	                    		bVerify = false;
 	                    	}
+	                    	strAnswerCode = "";
+	                    	handler.post(disSucesseMsg);
 /*	                    	
 	                    	char[] cotp = strOTPAnswer.toCharArray();
 	                    	String[] sotp = new String[cotp.length];
@@ -375,7 +387,7 @@ public class OTP extends Activity{
 	*/                       
 	                        
 	                    	try{
-	                    		Thread.sleep(2000);
+	                    		Thread.sleep(1000);
 	                    	}catch(Exception e){
 	                    		Log.v("zdmatrix", "err mesage is " + e);
 	                    	}
@@ -452,11 +464,51 @@ public class OTP extends Activity{
 		}
 	};
 	
+	Runnable runnableGone = new Runnable(){
+		@Override
+		public void run(){
+			imgLoadedImage.setVisibility(ImageView.GONE);
+			
+		}
+	};
+	
 	Runnable runnableDis = new Runnable(){
 		@Override
 		public void run(){
-			imgLoadedImage.setImageBitmap(bitmap);
+			switch(clicknum % 3){
+			case 0:
+				imgLoadedImage.setImageBitmap(bitmap);
+				break;
+			case 1:
+				imgLoadedImage.setImageBitmap(bitmap1);
+				break;
+			case 2:
+				imgLoadedImage.setImageBitmap(bitmap2);
+				break;
+			default:
+				break;
+			}
+			
+			
 		}
+	};
+	
+	Runnable disSucesseMsg = new Runnable(){
+		@Override
+		public void run(){
+			
+			tstDisInfo = new Toast(getApplicationContext()); 
+			tstDisInfo = Toast.makeText(getApplicationContext(), "登录成功！", Toast.LENGTH_SHORT);
+			toastRoot = getLayoutInflater().inflate(R.layout.toast, null);
+			tvToast = (TextView)toastRoot.findViewById(R.id.tvToast);
+			tvToast.setText("登录成功！");
+			
+			tstDisInfo.setDuration(Toast.LENGTH_LONG); 
+			tstDisInfo.setGravity(Gravity.CENTER, 0, 0);
+			tstDisInfo.setView(toastRoot);
+			tstDisInfo.show();
+		}
+		
 	};
 	
 	Runnable runnableKeepDialog = new Runnable(){
